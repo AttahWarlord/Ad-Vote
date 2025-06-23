@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yes/No Poll (Shared Votes)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .poll-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .poll-container h2 {
+            margin-bottom: 25px;
+            color: #333;
+        }
+        .buttons-container button {
+            background-color: #4CAF50; /* Green for Yes */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 0 10px;
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+        }
+        .buttons-container button.no-button {
+            background-color: #f44336; /* Red for No */
+        }
+        .buttons-container button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .buttons-container button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        .results-container {
+            margin-top: 30px;
+            font-size: 20px;
+            color: #555;
+        }
+        .results-container p {
+            margin: 10px 0;
+        }
+        .results-container span {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="poll-container">
+        <h2>Do you like this simple poll?</h2>
+        <div class="buttons-container">
+            <button id="yesButton">Yes</button>
+            <button id="noButton" class="no-button">No</button>
+        </div>
+        <div class="results-container">
+            <p>Yes votes: <span id="yesCount">0</span></p>
+            <p>No votes: <span id="noCount">0</span></p>
+            <p><small>(Your vote: <span id="yourVoteStatus">Not Voted</span>)</small></p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        // PASTE YOUR FIREBASE CONFIG SNIPPET HERE (from Step 1.3)
+        const firebaseConfig = {
+			apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678",
+			authDomain: "vote-7c98d.firebaseapp.com",
+			projectId: "vote-7c98d",
+			storageBucket: "vote-7c98d.firebasestorage.app",
+			messagingSenderId: "790876453479",
+			appId: "1:790876453479:web:a24133b7fdfb2f2c12f2c2",
+			measurementId: "G-LSEENP94Q9"
+		};
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // References to HTML elements
+        const yesButton = document.getElementById('yesButton');
+        const noButton = document.getElementById('noButton');
+        const yesCountSpan = document.getElementById('yesCount');
+        const noCountSpan = document.getElementById('noCount');
+        const yourVoteStatus = document.getElementById('yourVoteStatus');
+
+        // Poll data will be stored in a document named 'poll_results' in a collection named 'polls'
+        const pollDocRef = doc(db, "polls", "poll_results");
+
+        // Use localStorage to track if *this specific user* has voted
+        let hasVotedLocally = localStorage.getItem('hasVotedPoll') === 'true';
+
+        // Function to update the displayed counts
+        function updateDisplay(yesCount, noCount) {
+            yesCountSpan.textContent = yesCount;
+            noCountSpan.textContent = noCount;
+        }
+
+        // Function to disable both buttons
+        function disableVotingButtons() {
+            yesButton.disabled = true;
+            noButton.disabled = true;
+        }
+
+        // Function to fetch and update poll counts
+        async function fetchPollCounts() {
+            try {
+                const docSnap = await getDoc(pollDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    updateDisplay(data.yes || 0, data.no || 0);
+                } else {
+                    // Document doesn't exist, create it with initial values
+                    await setDoc(pollDocRef, { yes: 0, no: 0 });
+                    updateDisplay(0, 0);
+                }
+            } catch (e) {
+                console.error("Error fetching poll counts:", e);
+                alert("Could not load poll results. Please try again later.");
+            }
+        }
+
+        // Function to handle a vote
+        async function handleVote(voteType) {
+            if (hasVotedLocally) {
+                alert("You have already voted!");
+                return;
+            }
+
+            // Client-side disable immediately to prevent double clicks
+            disableVotingButtons();
+
+            try {
+                // Increment the chosen vote type
+                await updateDoc(pollDocRef, {
+                    [voteType]: increment(1)
+                });
+
+                // Update localStorage to mark as voted for this user
+                localStorage.setItem('hasVotedPoll', 'true');
+                // Store the type of vote for display
+                localStorage.setItem('lastVoteType', voteType);
+                hasVotedLocally = true;
+                yourVoteStatus.textContent = voteType === 'yes' ? 'Yes' : 'No';
+
+
+                // Fetch updated counts to reflect the new total
+                await fetchPollCounts();
+                alert("Your vote has been recorded!");
+
+            } catch (e) {
+                console.error("Error voting:", e);
+                alert("Failed to record your vote. Please try again.");
+                // If there's an error, re-enable buttons and clear local vote status
+                yesButton.disabled = false;
+                noButton.disabled = false;
+                localStorage.removeItem('hasVotedPoll');
+                localStorage.removeItem('lastVoteType');
+                hasVotedLocally = false;
+                yourVoteStatus.textContent = 'Not Voted';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchPollCounts(); // Load initial counts
+            if (hasVotedLocally) {
+                disableVotingButtons();
+                // Display user's previous vote if available
+                yourVoteStatus.textContent = localStorage.getItem('lastVoteType') === 'yes' ? 'Yes' : 'No';
+            } else {
+                yourVoteStatus.textContent = 'Not Voted';
+            }
+        });
+
+        // Event Listeners for buttons
+        yesButton.addEventListener('click', () => handleVote('yes'));
+        noButton.addEventListener('click', () => handleVote('no'));
+
+    </script>
+</body>
+</html>
