@@ -3,13 +3,13 @@
 // ==============================================
 // Your web app's Firebase configuration - MUST BE THE SAME AS BEFORE
 const firebaseConfig = {
-    apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678", // Replace with your actual API Key
-    authDomain: "vote-7c98d.firebaseapp.com",
-    projectId: "vote-7c98d",
-    storageBucket: "vote-7c98d.firebasestorage.app",
-    messagingSenderId: "790876453479",
-    appId: "1:790876453479:web:a24133b7fdfb2f2c12f2c2",
-    measurementId: "G-LSEENP94Q9"
+    apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678", // Replace with your actual API Key
+    authDomain: "vote-7c98d.firebaseapp.com",
+    projectId: "vote-7c98d",
+    storageBucket: "vote-7c98d.firebasestorage.app",
+    messagingSenderId: "790876453479",
+    appId: "1:790876453479:web:a24133b7fdfb2f2c12f2c2",
+    measurementId: "G-LSEENP94Q9"
 };
 
 // Initialize Firebase services
@@ -146,6 +146,7 @@ async function fetchUserProfile(user) {
             loggedInUsernameSpan.textContent = username;
             pollUserEmailSpan.textContent = username; // Update poll page username as well
             isAdmin = userData.isAdmin || false; // Set admin status (default to false if not set)
+            console.log("fetchUserProfile: User UID:", user.uid, "Is Admin:", isAdmin); // <-- LOGGING
             updateAdminUI(); // Update UI visibility based on admin status
         } else {
             console.warn("User document not found for:", user.uid, ". Creating default profile.");
@@ -193,7 +194,7 @@ function updateAdminUI() {
     if (!isAdmin) {
         if (pollQuestionInput) pollQuestionInput.value = '';
         if (newPollOptionInput) newPollOptionInput.value = '';
-        if (userListForAdmin) userListForAdmin.innerHTML = ''; // Clear admin list
+        // Note: userListForAdmin will be handled by fetchAllUserVotes
         if (adminMessage) displayMessage(adminMessage, '', ''); // Clear admin messages
     }
 }
@@ -436,6 +437,7 @@ async function updatePollQuestionAndResetVotes(newQuestion, resetVotes = false) 
 
     displayMessage(adminMessage, 'Updating poll question and resetting votes...', '');
     updateQuestionButton.disabled = true;
+    console.log("updatePollQuestionAndResetVotes called. Current user is admin:", isAdmin); // <-- LOGGING
 
     try {
         const batch = db.batch();
@@ -506,6 +508,7 @@ async function addPollOption() {
 
     displayMessage(adminMessage, `Adding "${newOption}" and resetting votes...`, '');
     addPollOptionButton.disabled = true;
+    console.log("addPollOption called. Current user is admin:", isAdmin); // <-- LOGGING
 
     try {
         const batch = db.batch();
@@ -564,6 +567,8 @@ async function deletePollOption(optionToDelete) {
     }
 
     displayMessage(adminMessage, `Deleting "${optionToDelete}" and resetting votes...`, '');
+    console.log("deletePollOption called. Current user is admin:", isAdmin); // <-- LOGGING
+
 
     try {
         const batch = db.batch();
@@ -602,6 +607,69 @@ async function deletePollOption(optionToDelete) {
             errorMessage = "Permission denied. Check Firestore rules for admin write access.";
         }
         displayMessage(adminMessage, errorMessage, 'error');
+    }
+}
+
+/**
+ * Clears a specific user's vote by their UID.
+ * This function should only be accessible by admins.
+ */
+async function clearUserVoteByUid(uid) {
+    if (!isAdmin) {
+        displayMessage(adminMessage, "Unauthorized: Only admins can clear user votes.", 'error');
+        return;
+    }
+
+    if (!uid) {
+        displayMessage(adminMessage, "Please enter a user UID.", 'error');
+        return;
+    }
+    console.log("clearUserVoteByUid called. Current user is admin:", isAdmin, "Clearing UID:", uid); // <-- LOGGING
+
+    clearUserVoteButton.disabled = true;
+    displayMessage(adminMessage, `Clearing vote for ${uid}...`, 'info');
+
+    try {
+        const voteDocRef = usersCollection.doc(uid).collection('votes').doc('poll_vote');
+        // We need to fetch the document first to get the previous vote type for decrementing counts
+        const voteDocSnap = await voteDocRef.get();
+        let previousVoteType = null;
+        if (voteDocSnap.exists) {
+            previousVoteType = voteDocSnap.data().vote;
+        }
+
+        const batch = db.batch();
+        batch.delete(voteDocRef); // Delete the user's vote record
+
+        // Decrement the global poll count if a previous vote existed
+        if (previousVoteType) {
+            const pollDocRef = pollsCollection.doc('poll_results');
+            const pollDoc = await batch.get(pollDocRef); // Get within the batch context
+
+            if (pollDoc.exists) {
+                const pollData = pollDoc.data();
+                let currentOptions = (typeof pollData.options === 'object' && pollData.options !== null) ? pollData.options : {};
+                if (currentOptions[previousVoteType] && currentOptions[previousVoteType] > 0) {
+                    currentOptions[previousVoteType]--;
+                    batch.update(pollDocRef, { options: currentOptions });
+                }
+            }
+        }
+
+        await batch.commit();
+
+        displayMessage(adminMessage, `Vote for user ${uid} cleared successfully.`, 'success');
+        await fetchPollData(); // Re-fetch poll data to update counts and UI
+        fetchAllUserVotes(); // Re-fetch all user votes to update list
+    } catch (error) {
+        console.error("Error clearing user vote:", error);
+        let errorMessage = `Error clearing vote for user ${uid}: ${error.message}`;
+        if (error.code === 'permission-denied') {
+            errorMessage = "Permission denied. Check Firestore rules for admin delete access on user votes.";
+        }
+        displayMessage(adminMessage, errorMessage, 'error');
+    } finally {
+        clearUserVoteButton.disabled = false;
     }
 }
 
@@ -648,16 +716,18 @@ async function fetchAllUserVotes() {
     if (!usersVoteList) return; // Exit if the element doesn't exist
 
     usersVoteList.innerHTML = '<li>Loading all user votes...</li>'; // Initial loading state
+    console.log("fetchAllUserVotes called. Current user is admin:", isAdmin); // <-- LOGGING
+
 
     try {
         const allVotes = [];
         // Get all user documents
-        const usersSnapshot = await usersCollection.get();
+        const usersSnapshot = await usersCollection.get(); // THIS IS THE LINE THAT NEEDS COLLECTION READ PERMISSION
 
         // For each user, get their specific vote document
         for (const userDoc of usersSnapshot.docs) {
-            const voteDoc = await userDoc.ref.collection('votes').doc('poll_vote').get();
             const username = userDoc.data().username || userDoc.data().email; // Use username or email
+            const voteDoc = await userDoc.ref.collection('votes').doc('poll_vote').get(); // THIS IS THE LINE THAT NEEDS SUBCOLLECTION READ PERMISSION
 
             if (voteDoc.exists) {
                 const voteData = voteDoc.data();
@@ -703,7 +773,7 @@ async function fetchAllUserVotes() {
 // ==============================================
 
 // Declare all global DOM element variables
-let loginPage, menuPage, pollPage;
+let loginPage, menuPage, pollPage, newPage; // Re-added newPage as it's still in the HTML
 let authForm, authMessage, loginButton;
 let loggedInUsernameSpan, pollUserEmailSpan;
 let goToPollButton, goToNewPageButton, logoutButton;
@@ -712,12 +782,16 @@ let voteMessage;
 let backToMenuFromPollButton;
 let adminMessage, pollQuestionInput, updateQuestionButton, currentPollOptionsList, addPollOptionButton, newPollOptionInput; // Admin elements
 let allUsersVoteStatusSection, usersVoteList; // All user votes section
+// NEW: elements for clearing vote by UID
+let clearVoteUidInput, clearUserVoteButton;
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // Assign HTML element references
     loginPage = document.getElementById('loginPage');
     menuPage = document.getElementById('menuPage');
     pollPage = document.getElementById('pollPage');
+    newPage = document.getElementById('newPage'); // Assign newPage
 
     authForm = document.getElementById('authForm');
     authMessage = document.getElementById('authMessage');
@@ -741,13 +815,17 @@ document.addEventListener('DOMContentLoaded', () => {
     adminMessage = document.getElementById('adminMessage');
     pollQuestionInput = document.getElementById('pollQuestionInput');
     updateQuestionButton = document.getElementById('updateQuestionButton');
-    currentPollOptionsList = document.getElementById('currentPollOptionsList'); // Changed from userListForAdmin to a more specific name for clarity
+    currentPollOptionsList = document.getElementById('currentPollOptionsList');
     addPollOptionButton = document.getElementById('addPollOptionButton');
     newPollOptionInput = document.getElementById('newPollOptionInput');
 
     // All User Votes section elements
     allUsersVoteStatusSection = document.getElementById('allUsersVoteStatus');
     usersVoteList = document.getElementById('usersVoteList');
+
+    // NEW: elements for clearing vote by UID
+    clearVoteUidInput = document.getElementById('clearVoteUidInput');
+    clearUserVoteButton = document.getElementById('clearUserVoteButton');
 
     // ==============================================
     //           Event Listeners
@@ -776,12 +854,23 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchAllUserVotes(); // Re-fetch all user votes
     });
 
-    // Modified to redirect to currency.html
+    // Handle "Go to Another Page" (newPage) button click
     if (goToNewPageButton) {
         goToNewPageButton.addEventListener('click', () => {
-            window.location.href = 'currency.html'; // Redirect to the new currency page
+            // Since we're not using a separate currency.html yet,
+            // we'll just show the existing newPage div.
+            // If you later create currency.html, change this to:
+            // window.location.href = 'currency.html';
+            showPage('newPage'); // Show the placeholder 'newPage'
         });
     }
+
+    // Handle "Back to Menu" from newPage
+    const backToMenuFromNewPageButton = document.getElementById('backToMenuFromNewPage');
+    if (backToMenuFromNewPageButton) {
+        backToMenuFromNewPageButton.addEventListener('click', () => showPage('menuPage'));
+    }
+
 
     if (backToMenuFromPollButton) backToMenuFromPollButton.addEventListener('click', () => showPage('menuPage'));
 
@@ -793,6 +882,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add new poll option - this also explicitly resets votes
     if (addPollOptionButton) addPollOptionButton.addEventListener('click', addPollOption);
+
+    // NEW: Clear specific user vote by UID
+    if (clearUserVoteButton) {
+        clearUserVoteButton.addEventListener('click', () => {
+            const uidToClear = clearVoteUidInput.value.trim();
+            if (uidToClear) {
+                clearUserVoteByUid(uidToClear);
+            } else {
+                displayMessage(adminMessage, "Please enter a user UID to clear.", 'warning');
+            }
+        });
+    }
 
 
     // ==============================================
