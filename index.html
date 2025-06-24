@@ -40,12 +40,28 @@
             <button id="logoutButton" class="danger-button">Logout</button>
         </div>
 
+        <div id="adminControlsDiv" class="hidden">
+    <h3>Admin Controls</h3>
+    <div class="input-group">
+        <label for="pollQuestionInput">Update Poll Question:</label>
+        <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
+        <button id="updateQuestionButton">Update Question</button>
+    </div>
+    <div class="input-group">
+        <label for="userToClearVoteInput">Clear User's Vote (by UID):</label>
+        <input type="text" id="userToClearVoteInput" placeholder="Enter user UID to clear vote">
+        <button id="clearVoteButton">Clear Vote</button>
+    </div>
+    <div id="adminMessage" class="message-box"></div>
+</div>
+
         <!-- ============================================== -->
         <!--              3. Vote Poll Page                 -->
         <!-- ============================================== -->
         <div id="pollPage" class="app-page hidden">
             <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
             <h2>Is Vinc Hot🔥?</h2>
+            <h2 id="pollQuestionDisplay">Loading Poll Question...</h2>
             <div class="buttons-container">
                 <button id="voteYes" class="poll-button yes-button">Yes</button>
                 <button id="voteNo" class="poll-button no-button">No</button>
@@ -66,8 +82,8 @@
         <!-- ============================================== -->
         <div id="newPage" class="app-page hidden">
             <h2>This is Your New Page</h2>
-            <p>You can add any content you like here. This page is just for demonstration purposes.</p>
-            <p>It's completely separate from the poll logic.</p>
+            <p>Work In Progress.</p>
+            <p>Prob Turn It Into A Plan.</p>
             <button id="backToMenuFromNewPage" class="secondary-button">Back to Menu</button>
         </div>
     </div>
