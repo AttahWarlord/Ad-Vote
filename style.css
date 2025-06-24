@@ -190,7 +190,7 @@ button:disabled {
 }
 
 /* ============================================== */
-/* NEW ADMIN STYLES (from your provided code)    */
+/* ADMIN STYLES                   */
 /* ============================================== */
 
 .admin-section {
@@ -288,7 +288,7 @@ button:disabled {
 
 
 /* ============================================== */
-/* NEW: All Users Vote Status Section Styles     */
+/* All Users Vote Status Section Styles     */
 /* ============================================== */
 
 .all-votes-section { /* Uses the .user-list-container styles as a base */
@@ -310,7 +310,7 @@ button:disabled {
     /* max-height and overflow-y are inherited from .user-list-container */
 }
 
-/* --- IMPORTANT CHANGES HERE FOR SPACING --- */
+/* --- IMPORTANT CHANGES HERE FOR SPACING (from previous turn) --- */
 #usersVoteList li {
     display: flex;
     justify-content: space-between;
@@ -358,6 +358,44 @@ button:disabled {
 .vote-status.not-voted {
     background-color: #e9ecef; /* Light grey for not voted */
     color: #6c757d;
+}
+
+/* ============================================== */
+/* NEW: Currency Hub Styles                     */
+/* ============================================== */
+.currency-nav {
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+.currency-nav button {
+    margin: 8px;
+    padding: 10px 20px;
+}
+
+.currency-sub-pages-container {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: center; /* Center content within sub-pages */
+}
+
+.currency-sub-page {
+    padding: 10px 0; /* Consistent padding for sub-pages */
+}
+
+/* Styling for the clicker button */
+#clickButton {
+    padding: 20px 40px; /* Make it large and clickable */
+    font-size: 2em;
+    background-color: #28a745; /* Green color */
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+#clickButton:hover {
+    background-color: #218838;
+    transform: translateY(-3px); /* More pronounced hover effect */
 }
 
 
@@ -408,5 +446,15 @@ button:disabled {
     .vote-status {
         margin-left: 0; /* Remove left margin when stacked */
         margin-top: 5px; /* Add top margin for spacing when stacked */
+    }
+
+    /* NEW: Currency Hub responsive adjustments */
+    .currency-nav button {
+        width: 100%;
+        margin: 8px 0;
+    }
+    #clickButton {
+        padding: 15px 30px;
+        font-size: 1.5em;
     }
 }
