@@ -1,128 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ad-Vote Poll Application</title>
-    <!-- Link to your CSS file -->
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad-Vote Poll Application</title>
+    <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- ============================================== -->
-        <!--                1. Login/Auth Page              -->
-        <!-- ============================================== -->
-        <div id="loginPage" class="app-page">
-            <h2>Please Log In or Register</h2>
-            <p id="authMessage" class="message-box error"></p>
-            <form id="authForm">
-                <div>
-                    <label for="email">Email (Username):</label>
-                    <input type="email" id="email" placeholder="e.g., yourname@example.com" required autocomplete="username">
-                </div>
-                <div>
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
-                </div>
-                <button type="submit" id="loginButton" class="main-button">Log In</button>
-            </form>
-        </div>
+    <div class="app-container">
+        <!-- ============================================== -->
+        <!--                1. Login/Auth Page              -->
+        <!-- ============================================== -->
+        <div id="loginPage" class="app-page">
+            <h2>Please Log In or Register</h2>
+            <p id="authMessage" class="message-box error"></p>
+            <form id="authForm">
+                <div>
+                    <label for="email">Email (Username):</label>
+                    <input type="email" id="email" placeholder="e.g., yourname@example.com" required autocomplete="username">
+                </div>
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" id="loginButton" class="main-button">Log In</button>
+            </form>
+        </div>
 
-        <!-- ============================================== -->
-        <!--                 2. Menu Page                   -->
-        <!-- ============================================== -->
-        <div id="menuPage" class="app-page hidden">
-            <p class="user-status">Welcome, <span id="loggedInUsername">User</span>!</p>
-            <h2>Main Menu</h2>
-            <button id="goToPollButton" class="main-button">Go to Vote Poll</button>
-            <button id="goToNewPageButton" class="main-button">Go to Another Page</button>
-            <button id="logoutButton" class="danger-button">Logout</button>
-        </div>
+        <!-- ============================================== -->
+        <!--                 2. Menu Page                   -->
+        <!-- ============================================== -->
+        <div id="menuPage" class="app-page hidden">
+            <p class="user-status">Welcome, <span id="loggedInUsername">User</span>!</p>
+            <h2>Main Menu</h2>
+            <button id="goToPollButton" class="main-button">Go to Vote Poll</button>
+            <button id="goToNewPageButton" class="main-button">Go to Another Page</button>
+            <button id="logoutButton" class="danger-button">Logout</button>
+        </div>
 
-        <!-- ============================================== -->
-        <!--               3. Vote Poll Page                -->
-        <!-- ============================================== -->
-        <div id="pollPage" class="app-page hidden">
-            <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
-            <h2 id="pollQuestionDisplay">Loading Poll Question...</h2>
-            <div id="pollButtonsContainer" class="buttons-container">
-                <p>Loading poll options...</p>
-                </div>
-            <div id="pollResultsContainer" class="results-container">
-            <p>Loading results...</p>
-            <p class="small-text">(Your vote: <span id="yourVoteStatus">Not Voted</span>)</p>
-                </div>
-            <p id="voteMessage" class="message-box"></p>
-            <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
+        <!-- ============================================== -->
+        <!--               3. Vote Poll Page                -->
+        <!-- ============================================== -->
+        <div id="pollPage" class="app-page hidden">
+            <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
+            <h2 id="pollQuestionDisplay">Loading Poll Question...</h2>
+            <div id="pollButtonsContainer" class="buttons-container">
+                <p>Loading poll options...</p>
+                </div>
+            <div id="pollResultsContainer" class="results-container">
+            <p>Loading results...</p>
+            <p class="small-text">(Your vote: <span id="yourVoteStatus">Not Voted</span>)</p>
+                </div>
+            <p id="voteMessage" class="message-box"></p>
+            <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
 
-            <!-- NEW: All Users Vote Status Section (visible to ALL logged-in users) -->
-            <div id="allUsersVoteStatus" class="all-votes-section">
-                <h4>All User Votes:</h4>
-                <ul id="usersVoteList">
-                    <li>Loading votes...</li>
-                </ul>
-            </div>
+            <!-- NEW: All Users Vote Status Section (visible to ALL logged-in users) -->
+            <div id="allUsersVoteStatus" class="all-votes-section">
+                <h4>All User Votes:</h4>
+                <ul id="usersVoteList">
+                    <li>Loading votes...</li>
+                </ul>
+            </div>
 
-            <!-- Admin Controls (now correctly nested inside pollPage and has 'admin-section' class) -->
-            <div id="adminControlsDiv" class="admin-section hidden">
-                <h3>Admin Controls</h3>
-                <div class="admin-message" id="adminMessage"></div> <!-- adminMessage should also be here -->
+            <!-- Admin Controls (now correctly nested inside pollPage and has 'admin-section' class) -->
+            <div id="adminControlsDiv" class="admin-section hidden">
+                <h3>Admin Controls</h3>
+                <div class="admin-message" id="adminMessage"></div> <!-- adminMessage should also be here -->
 
+                <div class="input-group">
+                    <label for="pollQuestionInput">Update Poll Question (Clears all votes!):</label>
+                    <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
+                    <button id="updateQuestionButton" class="main-button">Update Question</button>
+                </div>
+                <div class="input-group">
+                <label for="newPollOptionInput">Add New Poll Option (Clears all votes!):</label>
+                <input type="text" id="newPollOptionInput" placeholder="e.g., Very Likely">
+                <button id="addPollOptionButton" class="main-button">Add Option</button>
+            </div>
+
+            <div class="input-group">
+                <label>Current Options:</label>
+                <ul id="currentPollOptionsList" class="user-list-container" style="max-height: 150px;">
+                    <li>No options loaded.</li>
+                </ul>
+            </div>
+
+                <!-- NEW: Clear User's Vote by UID -->
+                <h3 class="admin-subsection-title">Clear Specific User's Vote</h3>
                 <div class="input-group">
-                    <label for="pollQuestionInput">Update Poll Question (Clears all votes!):</label>
-                    <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
-                    <button id="updateQuestionButton" class="main-button">Update Question</button>
+                    <label for="clearVoteUidInput">Enter User UID to Clear Vote:</label>
+                    <input type="text" id="clearVoteUidInput" placeholder="User's UID (e.g., abcdef123)">
+                    <button id="clearUserVoteButton" class="danger-button">Clear User Vote</button>
                 </div>
-                <div class="input-group">
-                <label for="newPollOptionInput">Add New Poll Option (Clears all votes!):</label>
-                <input type="text" id="newPollOptionInput" placeholder="e.g., Very Likely">
-                <button id="addPollOptionButton" class="main-button">Add Option</button>
-            </div>
+                <!-- END NEW -->
 
-            <div class="input-group">
-                <label>Current Options:</label>
-                <ul id="currentPollOptionsList" class="user-list-container" style="max-height: 150px;">
-                    <li>No options loaded.</li>
-                </ul>
-            </div>
+                <!-- Admin's list of users with clear vote buttons -->
+                <div id="userListForAdmin" class="user-list-container">
+                    <!-- User list populated by JS -->
+                </div>
+            </div>
+        </div>
 
-                <!-- Admin's list of users with clear vote buttons -->
-                <div id="userListForAdmin" class="user-list-container">
-                    <!-- User list populated by JS -->
-                </div>
-                 <!-- The direct UID clear is removed as per your request for easier clearing via list -->
-                 <!-- If you still want it, uncomment this:
-                <div class="input-group">
-                    <label for="userToClearVoteInput">Clear User's Vote (by UID):</label>
-                    <input type="text" id="userToClearVoteInput" placeholder="Enter user UID to clear vote">
-                    <button id="clearVoteButton" class="danger-button">Clear Vote</button>
-                </div>
-                 -->
-            </div>
-        </div>
+        <!-- ============================================== -->
+        <!--                 4. New Page                    -->
+        <!-- ============================================== -->
+        <div id="newPage" class="app-page hidden">
+            <h2>This is Your New Page</h2>
+            <p>Work In Progress.</p>
+            <p>Prob Turn It Into A Plan.</p>
+            <button id="backToMenuFromNewPage" class="secondary-button">Back to Menu</button>
+        </div>
+    </div>
 
-        <!-- ============================================== -->
-        <!--                 4. New Page                    -->
-        <!-- ============================================== -->
-        <div id="newPage" class="app-page hidden">
-            <h2>This is Your New Page</h2>
-            <p>Work In Progress.</p>
-            <p>Prob Turn It Into A Plan.</p>
-            <button id="backToMenuFromNewPage" class="secondary-button">Back to Menu</button>
-        </div>
-    </div>
+    <!-- ============================================== -->
+    <!--            Firebase SDK & Your Scripts         -->
+    <!-- ============================================== -->
+    <!-- Firebase SDK (using compat versions for broader compatibility) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 
-    <!-- ============================================== -->
-    <!--            Firebase SDK & Your Scripts         -->
-    <!-- ============================================== -->
-    <!-- Firebase SDK (using compat versions for broader compatibility) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-
-    <!-- Your main application JavaScript -->
-    <script src="script.js"></script>
+    <!-- Your main application JavaScript -->
+    <script src="script.js"></script>
 
 </body>
 </html>
