@@ -174,7 +174,23 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         // User is signed in
         currentUser = user;
-        loggedInUsernameSpan.textContent = user.email; // Display email as username
+        // Fetch username from Firestore
+        const userProfileRef = db.collection("users").doc(user.uid); // Reference to the user's profile document
+        try {
+            const userProfileSnap = await userProfileRef.get();
+            if (userProfileSnap.exists && userProfileSnap.data().username) {
+                // If username exists in the profile, use it
+                loggedInUsernameSpan.textContent = userProfileSnap.data().username;
+            } else {
+                // Fallback to email if no username is found in Firestore
+                loggedInUsernameSpan.textContent = user.email;
+                // Optional: You could also create the document with the email as username here if it doesn't exist
+                // userProfileRef.set({ username: user.email }, { merge: true }); 
+            }
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            loggedInUsernameSpan.textContent = user.email + " (Error fetching username)"; // Show email with an error hint
+        }
         pollUserEmailSpan.textContent = user.email; // Display email on poll page
 
         emailInput.value = ''; // Clear login form inputs
