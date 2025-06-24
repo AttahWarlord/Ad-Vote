@@ -90,17 +90,29 @@
         <!-- ============================================== -->
         <!--           NEW: 4. Currency Hub Page            -->
         <!-- ============================================== -->
-        <div id="currencyPage" class="app-page hidden">
-            <h2>Your Currency Hub</h2>
-            <p class="user-status">Current Balance: <span id="userCurrencyBalance">0</span> Coins</p>
+       <div id="currencyPage" class="app-page hidden">
 
-            <div class="currency-nav">
-                <button id="goToClickerButton" class="main-button">Clicker Game</button>
-                <!-- Add more currency feature buttons here later -->
+            <div id="currencyHubMainContent">
+                <h2>Your Currency Hub</h2>
+                <p class="user-status">Current Balance: <span id="userCurrencyBalance">0</span> Coins</p>
+
+                <div class="currency-nav">
+                    <button id="goToClickerButton" class="main-button">Clicker Game</button>
+                    </div>
             </div>
-
-            <!-- Container for currency sub-pages -->
             <div id="currencySubPagesContainer">
+                <div id="clickerGamePage" class="currency-sub-page hidden">
+                    <h3>Click to Earn Coins!</h3>
+                    <p>Total Clicks: <span id="clickCountDisplay">0</span></p>
+                    <p>Coins per Click: <span id="earningPerClick">1</span></p>
+                    <button id="clickButton" class="main-button poll-button">Click Me!</button>
+                    <button id="backToCurrencyHubButton" class="secondary-button">Back to Hub</button>
+                </div>
+
+                </div>
+
+            <button id="backToMenuFromCurrency" class="secondary-button">Back to Menu</button>
+        </div>
                 <!-- ============================================== -->
                 <!--        Currency: Clicker Game Sub-Page         -->
                 <!-- ============================================== -->
