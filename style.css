@@ -35,18 +35,6 @@ h2 {
     font-size: 1.8em;
 }
 
-h3 { /* Ensure consistent H3 styling for new sections */
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-}
-
-h4 { /* For the "All User Votes" section heading */
-    color: #333;
-    margin-bottom: 15px;
-    font-size: 1.3em;
-}
-
 label {
     display: block;
     margin-bottom: 8px;
@@ -241,23 +229,24 @@ button:disabled {
     font-size: 0.9em;
 }
 
-.user-list-container { /* Reused for admin and all user lists */
+/* User List Container (for both admin and all-user vote list) */
+.user-list-container {
     margin-top: 20px;
     padding: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #f9f9f9;
-    max-height: 300px; /* Added scroll limit for longer lists */
+    max-height: 300px; /* Limit height for scrolling */
     overflow-y: auto; /* Enable vertical scrolling */
 }
 
-/* Admin User List */
+/* Specific styles for admin's user list items */
 #adminUserList {
     list-style: none;
     padding: 0;
 }
 
-.user-list-item {
+.user-list-item { /* Applies to both admin and all-user lists */
     margin-bottom: 8px;
     padding: 5px 0;
     border-bottom: 1px dashed #eee;
@@ -280,7 +269,7 @@ button:disabled {
     margin-right: 10px; /* Space between UID and button */
 }
 
-.clear-vote-button { /* Specific style for Clear Vote buttons */
+.clear-vote-button { /* Specific style for Clear Vote buttons in admin list */
     background-color: #dc3545; /* Red for Clear Vote */
     color: white;
     border: none;
@@ -302,8 +291,8 @@ button:disabled {
 /* NEW: All Users Vote Status Section Styles     */
 /* ============================================== */
 
-.all-votes-section { /* Reusing user-list-container for general styling */
-    margin-top: 40px; /* Space above section */
+.all-votes-section { /* Uses the .user-list-container styles as a base */
+    margin-top: 40px; /* Consistent spacing */
     padding-top: 30px;
     border-top: 2px dashed #ddd; /* Visual separator */
     text-align: left;
@@ -315,30 +304,21 @@ button:disabled {
     margin-bottom: 20px;
 }
 
-#usersVoteList { /* The actual UL within the all-votes-section */
+#usersVoteList { /* The actual UL within the all-votes-section, reuses .user-list-item for LIs */
     list-style: none;
     padding: 0;
+    /* max-height and overflow-y are inherited from .user-list-container */
 }
 
-#usersVoteList li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px dashed #eee;
-}
-
-#usersVoteList li:last-child {
-    border-bottom: none;
-}
-
+/* Specific styling for the vote status text */
 .vote-status {
     font-weight: bold;
     padding: 4px 8px;
     border-radius: 5px;
     font-size: 0.9em;
-    min-width: 60px; /* Ensure consistent width for vote status */
+    min-width: 70px; /* Ensure consistent width for vote status */
     text-align: center;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 /* Specific vote status colors for .vote-status */
@@ -362,7 +342,8 @@ button:disabled {
     color: #6c757d;
 }
 
-/* Responsive adjustments (from your provided code) */
+
+/* Responsive adjustments */
 @media (max-width: 600px) {
     .app-container {
         padding: 20px;
