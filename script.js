@@ -1,9 +1,9 @@
 // ==============================================
 //           Firebase Configuration
 // ==============================================
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration (PASTE YOUR ACTUAL CONFIG HERE)
 const firebaseConfig = {
-    apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678",
+    apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtZXXXXXXXX", // <-- Replace with your actual API Key
     authDomain: "vote-7c98d.firebaseapp.com",
     projectId: "vote-7c98d",
     storageBucket: "vote-7c98d.firebasestorage.app",
@@ -36,6 +36,7 @@ const authForm = document.getElementById('authForm');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const loginButton = document.getElementById('loginButton');
+// const registerButton = document.getElementById('registerButton'); // THIS LINE IS REMOVED
 const authMessage = document.getElementById('authMessage');
 
 // Menu elements
@@ -127,13 +128,14 @@ authForm.addEventListener('submit', async (e) => {
     const password = passwordInput.value;
     displayMessage(authMessage, '', ''); // Clear previous messages
 
-    // Disable buttons during auth operation
-    loginButton.disabled = true; // Keep this line
+    // Disable login button during auth operation
+    loginButton.disabled = true;
 
     try {
         await auth.signInWithEmailAndPassword(email, password);
         // onAuthStateChanged will handle UI update if successful
         displayMessage(authMessage, 'Login successful!', 'success');
+        // Inputs are cleared by onAuthStateChanged when page switches
     } catch (error) {
         console.error("Login failed:", error.code, error.message);
         let errorMessage = "Login failed. Please check your credentials.";
@@ -144,10 +146,12 @@ authForm.addEventListener('submit', async (e) => {
         }
         displayMessage(authMessage, errorMessage, 'error');
     } finally {
-        // Re-enable buttons regardless of success or failure
-        loginButton.disabled = false; // Keep this line
+        // Re-enable login button regardless of success or failure
+        loginButton.disabled = false;
     }
 });
+
+// The entire registerButton.addEventListener block has been removed from here.
 
 /**
  * Handles user logout.
@@ -212,14 +216,19 @@ async function checkUserVoteStatus(uid) {
         } else {
             hasVotedCurrentUser = false;
             yourVoteStatusSpan.textContent = 'Not Voted';
-            setPollButtonsDisabled(false); // Enable if not voted
+            // Only enable buttons if user is currently logged in
+            if (currentUser) { 
+                setPollButtonsDisabled(false); 
+            }
         }
     } catch (e) {
         console.error("Error checking user vote status:", e);
-        // Assume not voted if error occurs, to allow retrying
         hasVotedCurrentUser = false;
         yourVoteStatusSpan.textContent = 'Error checking status';
-        setPollButtonsDisabled(false); // Ensure buttons are enabled to allow retry or first vote
+        // Only enable buttons if user is currently logged in
+        if (currentUser) {
+            setPollButtonsDisabled(false);
+        }
     }
 }
 
@@ -306,7 +315,6 @@ async function handleVote(voteType) {
         let errorMessage = "Failed to record your vote. Please try again.";
         if (e.code === 'permission-denied') {
             // This is crucial: If the poll_results rule denied it, it's likely a second vote attempt.
-            // Or if there was an issue with creating users_voted document.
             await checkUserVoteStatus(currentUser.uid); // Re-check state to confirm if user has voted
             if (hasVotedCurrentUser) {
                  errorMessage = "You have already voted!";
@@ -315,11 +323,9 @@ async function handleVote(voteType) {
             }
         }
         displayMessage(voteMessage, errorMessage, 'error');
-        setPollButtonsDisabled(false); // Re-enable if the vote wasn't cast (e.g., general error)
-    } finally {
-        // Ensure buttons are re-enabled if an error occurred and no vote was recorded
+        // Re-enable buttons if the vote wasn't cast (e.g., general error or permission denied without vote)
         if (!hasVotedCurrentUser) {
-            setPollButtonsDisabled(false);
+            setPollButtonsDisabled(false); 
         }
     }
 }
@@ -340,13 +346,12 @@ backToMenuFromPollButton.addEventListener('click', () => showPage('menuPage'));
 backToMenuFromNewPageButton.addEventListener('click', () => showPage('menuPage'));
 
 // ==============================================
-//            Initial App Load
+//            Initial App Load & Setup
 // ==============================================
 // On initial page load, ensure the login page is shown.
 // The onAuthStateChanged listener will handle subsequent state changes.
 document.addEventListener('DOMContentLoaded', () => {
-    // This is primarily for the very first load or after a hard refresh
-    // The onAuthStateChanged listener will eventually override this.
+    // This ensures the page is correctly displayed on initial load before auth state is fully resolved.
     if (!auth.currentUser) {
         showPage('loginPage');
     }
