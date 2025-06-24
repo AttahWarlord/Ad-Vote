@@ -46,17 +46,13 @@
         <div id="pollPage" class="app-page hidden">
             <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
             <h2 id="pollQuestionDisplay">Loading Poll Question...</h2>
-            <div class="buttons-container">
-                <button id="voteYes" class="poll-button yes-button">Yes</button>
-                <button id="voteNo" class="poll-button no-button">No</button>
-                <button id="voteMaybe" class="poll-button maybe-button">Maybe</button>
-            </div>
-            <div class="results-container">
-                <p>Yes votes: <span id="yesCount">0</span></p>
-                <p>No votes: <span id="noCount">0</span></p>
-                <p>Maybe votes: <span id="maybeCount">0</span></p>
-                <p class="small-text">(Your vote: <span id="yourVoteStatus">Not Voted</span>)</p>
-            </div>
+            <div id="pollButtonsContainer" class="buttons-container">
+                <p>Loading poll options...</p>
+                </div>
+            <div id="pollResultsContainer" class="results-container">
+            <p>Loading results...</p>
+            <p class="small-text">(Your vote: <span id="yourVoteStatus">Not Voted</span>)</p>
+                </div>
             <p id="voteMessage" class="message-box"></p>
             <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
 
@@ -78,6 +74,18 @@
                     <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
                     <button id="updateQuestionButton" class="main-button">Update Question</button>
                 </div>
+                <div class="input-group">
+                <label for="newPollOptionInput">Add New Poll Option (Clears all votes!):</label>
+                <input type="text" id="newPollOptionInput" placeholder="e.g., Very Likely">
+                <button id="addPollOptionButton" class="main-button">Add Option</button>
+            </div>
+
+            <div class="input-group">
+                <label>Current Options:</label>
+                <ul id="currentPollOptionsList" class="user-list-container" style="max-height: 150px;">
+                    <li>No options loaded.</li>
+                </ul>
+            </div>
 
                 <!-- Admin's list of users with clear vote buttons -->
                 <div id="userListForAdmin" class="user-list-container">
