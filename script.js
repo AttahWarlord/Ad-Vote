@@ -36,7 +36,6 @@ const authForm = document.getElementById('authForm');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const loginButton = document.getElementById('loginButton');
-const registerButton = document.getElementById('registerButton');
 const authMessage = document.getElementById('authMessage');
 
 // Menu elements
@@ -129,15 +128,12 @@ authForm.addEventListener('submit', async (e) => {
     displayMessage(authMessage, '', ''); // Clear previous messages
 
     // Disable buttons during auth operation
-    loginButton.disabled = true;
-    registerButton.disabled = true;
+    loginButton.disabled = true; // Keep this line
 
     try {
         await auth.signInWithEmailAndPassword(email, password);
         // onAuthStateChanged will handle UI update if successful
         displayMessage(authMessage, 'Login successful!', 'success');
-        // Clear inputs only after successful login, and auth state change is handled.
-        // The onAuthStateChanged listener will clear them upon page transition.
     } catch (error) {
         console.error("Login failed:", error.code, error.message);
         let errorMessage = "Login failed. Please check your credentials.";
@@ -149,48 +145,7 @@ authForm.addEventListener('submit', async (e) => {
         displayMessage(authMessage, errorMessage, 'error');
     } finally {
         // Re-enable buttons regardless of success or failure
-        loginButton.disabled = false;
-        registerButton.disabled = false;
-    }
-});
-
-/**
- * Handles user registration.
- */
-registerButton.addEventListener('click', async () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    displayMessage(authMessage, '', ''); // Clear previous messages
-
-    if (password.length < 6) {
-        displayMessage(authMessage, "Password must be at least 6 characters long.", 'error');
-        return;
-    }
-
-    // Disable buttons during auth operation
-    loginButton.disabled = true;
-    registerButton.disabled = true;
-
-    try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        // onAuthStateChanged will handle UI update if successful
-        displayMessage(authMessage, 'Registration successful! You are now logged in.', 'success');
-        // Clear inputs after successful registration.
-    } catch (error) {
-        console.error("Registration failed:", error.code, error.message);
-        let errorMessage = "Registration failed. Please try again.";
-        if (error.code === 'auth/email-already-in-use') {
-            errorMessage = "This email is already registered. Try logging in.";
-        } else if (error.code === 'auth/invalid-email') {
-            errorMessage = "Please enter a valid email address.";
-        } else if (error.code === 'auth/weak-password') {
-            errorMessage = "Password is too weak. Please choose a stronger one.";
-        }
-        displayMessage(authMessage, errorMessage, 'error');
-    } finally {
-        // Re-enable buttons regardless of success or failure
-        loginButton.disabled = false;
-        registerButton.disabled = false;
+        loginButton.disabled = false; // Keep this line
     }
 });
 
