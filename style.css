@@ -310,6 +310,23 @@ button:disabled {
     /* max-height and overflow-y are inherited from .user-list-container */
 }
 
+/* --- IMPORTANT CHANGES HERE FOR SPACING --- */
+#usersVoteList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0; /* Increased padding from 8px to 10px */
+    margin-bottom: 5px; /* Added margin between list items */
+    border-bottom: 1px dashed #eee;
+}
+
+#usersVoteList li:last-child {
+    border-bottom: none;
+    margin-bottom: 0; /* No bottom margin for the last item */
+}
+/* --- END OF IMPORTANT CHANGES --- */
+
+
 /* Specific styling for the vote status text */
 .vote-status {
     font-weight: bold;
@@ -319,6 +336,7 @@ button:disabled {
     min-width: 70px; /* Ensure consistent width for vote status */
     text-align: center;
     flex-shrink: 0; /* Prevent shrinking */
+    margin-left: 10px; /* Add some space to the left of the status badge */
 }
 
 /* Specific vote status colors for .vote-status */
@@ -380,5 +398,15 @@ button:disabled {
     .clear-vote-button { /* Also make clear vote button full width */
         margin-left: 0;
         width: 100%;
+    }
+
+    /* Adjustments for "All User Votes" on small screens */
+    #usersVoteList li {
+        flex-direction: column; /* Stack username and vote status */
+        align-items: flex-start;
+    }
+    .vote-status {
+        margin-left: 0; /* Remove left margin when stacked */
+        margin-top: 5px; /* Add top margin for spacing when stacked */
     }
 }
