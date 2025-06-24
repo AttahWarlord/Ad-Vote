@@ -1,164 +1,375 @@
-/* ============================================== */
-/* NEW ADMIN & ALL USER VOTES STYLES              */
-/* ============================================== */
+/* General Body and Container Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+}
 
+#app-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative; /* For page positioning */
+    overflow: hidden; /* Hide overflowing pages */
+    min-height: 400px; /* Ensure a minimum height for the container */
+    display: flex; /* Use flexbox for page alignment inside container */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Page Specific Styles */
+.app-page {
+    width: 100%;
+    /* Ensures pages don't take up more space than container */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: 20px 0; /* Add some vertical padding */
+}
+
+.app-page.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Prevent interaction when hidden */
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin: 0 auto; /* Center inputs */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+/* Buttons */
+button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-block; /* For better spacing */
+    margin: 5px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Primary Button */
+.primary-button {
+    background-color: #007bff;
+    color: white;
+}
+
+.primary-button:hover {
+    background-color: #0056b3;
+}
+
+/* Secondary Button */
+.secondary-button {
+    background-color: #6c757d;
+    color: white;
+}
+
+.secondary-button:hover {
+    background-color: #5a6268;
+}
+
+/* Success Button (for vote options) */
+.success-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.success-button:hover {
+    background-color: #218838;
+}
+
+/* Warning Button (for vote options) */
+.warning-button {
+    background-color: #ffc107;
+    color: #333; /* Darker text for contrast */
+}
+
+.warning-button:hover {
+    background-color: #e0a800;
+}
+
+/* Danger Button (for vote options) */
+.danger-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.danger-button:hover {
+    background-color: #c82333;
+}
+
+/* Message Box Styles */
+.message-box {
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-weight: bold;
+    text-align: center;
+    display: none; /* Hidden by default, shown via JS */
+}
+
+.message-box.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message-box.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Poll Specific Styles */
+#pollQuestionDisplay {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    color: #2c3e50;
+}
+
+.poll-results {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start; /* Align counts at the top */
+    margin-top: 20px;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.vote-count-item {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #e9ecef;
+    min-width: 80px; /* Ensure consistent width */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.vote-count-item h3 {
+    margin-bottom: 5px;
+    font-size: 18px;
+    color: #495057;
+}
+
+.vote-count-item p {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    color: #007bff;
+}
+
+/* Individual vote status (for poll page) */
+#yourVoteStatusSpan {
+    font-style: italic;
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+    color: #6c757d;
+}
+
+/* Admin Controls Section */
 .admin-section {
-    margin-top: 40px; /* Space above admin controls */
-    padding-top: 30px;
-    border-top: 2px dashed #ddd; /* Visual separator */
-    text-align: left; /* Align text within admin section to left */
+    border-top: 2px dashed #ccc;
+    padding-top: 25px;
+    margin-top: 30px;
+    text-align: left;
 }
 
 .admin-section h3 {
     text-align: center;
     color: #007bff;
     margin-bottom: 20px;
-    font-size: 1.5em;
 }
 
-.admin-section .input-group {
-    margin-bottom: 15px;
-}
-
-.admin-section .input-group label {
-    margin-bottom: 5px;
-    font-size: 0.95em;
-    color: #666;
-}
-
-.admin-section input[type="text"] {
-    margin-bottom: 10px; /* Adjust margin for admin inputs */
-}
-
-.admin-section button {
-    width: auto;
-    display: inline-block;
-    margin-right: 5px;
-    padding: 8px 15px;
-    font-size: 0.9em;
-}
-
-.user-list-container {
-    margin-top: 20px;
+.admin-action-group {
+    margin-bottom: 20px;
     padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e2e6ea;
 }
 
-#adminUserList {
+.admin-action-group p {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.admin-action-group input[type="text"] {
+    margin-right: 10px;
+    width: calc(70% - 20px); /* Adjust width for input */
+}
+
+/* Admin User List */
+#userListForAdmin {
     list-style: none;
     padding: 0;
+    margin-top: 15px;
+    max-height: 250px; /* Limit height and make scrollable */
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #fff;
 }
 
-.user-list-item {
-    margin-bottom: 8px;
-    padding: 5px 0;
-    border-bottom: 1px dashed #eee;
+#userListForAdmin li {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
 }
 
-.user-list-item:last-child {
+#userListForAdmin li:last-child {
     border-bottom: none;
 }
 
-.user-uid {
-    font-family: monospace; /* Makes UIDs easier to read */
-    font-size: 0.9em;
-    color: #555;
-    word-break: break-all; /* Break long UIDs */
-    flex-grow: 1; /* Allow it to take available space */
-    margin-right: 10px; /* Space between UID and button */
+#userListForAdmin li:nth-child(even) {
+    background-color: #fbfbfb;
+}
+
+.user-list-item strong {
+    color: #333;
+}
+
+.user-list-item .user-uid {
+    font-size: 0.8em;
+    color: #777;
+    word-break: break-all; /* Ensure long UIDs wrap */
 }
 
 .copy-uid-button {
-    background-color: #007bff;
+    padding: 6px 12px;
+    font-size: 0.85em;
+    margin-left: 10px;
+    background-color: #17a2b8; /* Info color */
     color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8em;
-    margin-left: auto; /* Push to the right */
-    flex-shrink: 0; /* Don't shrink when space is tight */
-    transition: background-color 0.2s ease;
 }
 
 .copy-uid-button:hover {
-    background-color: #0056b3;
+    background-color: #138496;
 }
 
-/* NEW: Styles for All User Votes section */
-.all-votes-section {
+/* NEW: All Users Vote Status Section */
+#allUsersVoteStatus {
+    border-top: 2px dashed #ccc;
+    padding-top: 25px;
     margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px dashed #ccc;
     text-align: left;
 }
 
-.all-votes-section h4 {
+#allUsersVoteStatus h3 {
     text-align: center;
-    color: #444;
-    margin-bottom: 15px;
-    font-size: 1.2em;
+    color: #28a745; /* Green for this section */
+    margin-bottom: 20px;
 }
 
 #usersVoteList {
     list-style: none;
     padding: 0;
-    max-height: 200px; /* Limit height and make it scrollable if many users */
+    margin-top: 15px;
+    max-height: 300px; /* Limit height and make scrollable */
     overflow-y: auto;
-    border: 1px solid #eee;
-    border-radius: 5px;
-    background-color: #fcfcfc;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #fff;
 }
 
 #usersVoteList li {
-    padding: 8px 12px;
-    border-bottom: 1px solid #f5f5f5;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
 }
 
 #usersVoteList li:last-child {
     border-bottom: none;
 }
 
-#usersVoteList li span.vote-status {
-    font-weight: bold;
-    min-width: 80px; /* Ensure consistent spacing */
-    text-align: right;
+#usersVoteList li:nth-child(even) {
+    background-color: #fbfbfb;
 }
 
-/* Colors for vote statuses */
-#usersVoteList li span.vote-status.yes { color: #28a745; }
-#usersVoteList li span.vote-status.no { color: #f44336; }
-#usersVoteList li span.vote-status.maybe { color: #e0a800; }
-#usersVoteList li span.vote-status.not-voted { color: #6c757d; }
+.vote-status {
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
 
-/* Responsive adjustments for the new elements */
-@media (max-width: 600px) {
-    .admin-section button {
-        width: 100%; /* Full width buttons on small screens */
-        margin: 5px 0;
-    }
+/* Specific vote status colors for .vote-status */
+.vote-status.yes {
+    background-color: #d4edda;
+    color: #28a745;
+}
 
-    .user-list-item {
-        flex-direction: column; /* Stack username/UID and button */
-        align-items: flex-start;
-    }
+.vote-status.no {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
 
-    .user-uid {
-        margin-right: 0;
-        margin-bottom: 5px;
-    }
+.vote-status.maybe {
+    background-color: #fff3cd;
+    color: #ffc107;
+}
 
-    .copy-uid-button {
-        margin-left: 0;
-        width: 100%;
-    }
+.vote-status.not-voted {
+    background-color: #e2e6ea;
+    color: #6c757d;
 }
