@@ -1,7 +1,7 @@
 // ==============================================
 //           Firebase Configuration
 // ==============================================
-// Your web app's Firebase configuration (PASTE YOUR ACTUAL CONFIG HERE)
+// Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678",
     authDomain: "vote-7c98d.firebaseapp.com",
