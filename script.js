@@ -92,7 +92,7 @@ function showPage(pageId) {
     // Clear any messages when navigating pages
     displayMessage(authMessage, '', '');
     displayMessage(voteMessage, '', '');
-    displayMessage(adminMessage, '', ''); // Clear admin messages too
+    displayMessage(adminMessage, '', '');
 }
 
 /**
