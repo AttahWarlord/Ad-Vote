@@ -369,26 +369,25 @@ async function handleVote(voteType) {
                 oldVote = userVoteDoc.data().vote;
             }
 
-            const currentCounts = voteCountsDoc.exists ? voteCountsDoc.data() : { yes: 0, no: 0, maybe: 0 };
+            // Initialize counts if they don't exist
+            let currentCounts = voteCountsDoc.exists ? voteCountsDoc.data() : { yes: 0, no: 0, maybe: 0 };
 
-            // Decrement old vote count if user changed their vote
+            // Adjust counts based on old vote
             if (oldVote && oldVote !== voteType) {
+                // If user changes vote, decrement old vote count
                 currentCounts[oldVote] = (currentCounts[oldVote] || 0) - 1;
             }
+            // Increment the new vote count
+            currentCounts[voteType] = (currentCounts[voteType] || 0) + 1;
 
-            // Increment new vote count
-            if (oldVote !== voteType) { // Only increment if it's a new vote or a change
-                currentCounts[voteType] = (currentCounts[voteType] || 0) + 1;
-            }
-
-            // Update user's vote
+            // Update user's vote (set always works, even if doc doesn't exist)
             transaction.set(userVoteRef, {
                 userId: currentUserId,
                 vote: voteType,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // Update global vote counts
+            // Update global vote counts using the adjusted counts
             transaction.set(voteCountsRef, currentCounts);
         });
 
@@ -396,7 +395,12 @@ async function handleVote(voteType) {
         await loadPoll(); // Reload poll to update counts and user's vote status
     } catch (error) {
         console.error("Error voting:", error);
-        displayMessage(voteMessageDisplay, `Error recording vote: ${error.message}`, 'error');
+        // FirebaseError: code: "failed-precondition" means a concurrent modification occurred.
+        if (error.code === 'aborted') {
+            displayMessage(voteMessageDisplay, 'Vote failed due to concurrent activity. Please try again.', 'error');
+        } else {
+            displayMessage(voteMessageDisplay, `Error recording vote: ${error.message}`, 'error');
+        }
     }
 }
 
