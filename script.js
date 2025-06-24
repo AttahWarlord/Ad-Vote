@@ -3,28 +3,34 @@
 // ==============================================
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678",
-    authDomain: "vote-7c98d.firebaseapp.com",
-    projectId: "vote-7c98d",
-    storageBucket: "vote-7c98d.firebasestorage.app",
-    messagingSenderId: "790876453479",
-    appId: "1:790876453479:web:a24133b7fdfb2f2c12f2c2",
-    measurementId: "G-LSEENP94Q9"
+    apiKey: "YOUR_API_KEY", // Replace with your actual API Key
+    authDomain: "YOUR_AUTH_DOMAIN", // Replace with your actual Auth Domain
+    projectId: "YOUR_PROJECT_ID", // Replace with your actual Project ID
+    storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your actual Storage Bucket
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Replace with your actual Messaging Sender ID
+    appId: "YOUR_APP_ID", // Replace with your actual App ID
+    measurementId: "YOUR_MEASUREMENT_ID" // Replace with your actual Measurement ID
 };
 
 // Initialize Firebase services
 const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore(app); // Use firebase.firestore(app) for compat versions
-const auth = firebase.auth(app);     // Use firebase.auth(app) for compat versions
+const db = firebase.firestore(app);
+const auth = firebase.auth(app);
 
 // Firestore Poll Document Reference
 const pollDocRef = db.collection("polls").doc("poll_results");
 // Firestore Collection Reference for tracking user votes
 const usersVotedCollection = db.collection("users_voted");
+// Firestore Collection Reference for user profiles
+const usersCollection = db.collection("users");
+
 
 // ==============================================
 //           HTML Element References
 // ==============================================
+// New Page elements
+const backToMenuFromNewPageButton = document.getElementById('backToMenuFromNewPage');
+
 // Page containers
 const loginPage = document.getElementById('loginPage');
 const menuPage = document.getElementById('menuPage');
@@ -57,22 +63,24 @@ const voteMessage = document.getElementById('voteMessage');
 const backToMenuFromPollButton = document.getElementById('backToMenuFromPoll');
 const pollQuestionDisplay = document.getElementById('pollQuestionDisplay');
 
+// NEW: All Users Vote Status Elements
+const allUsersVoteStatus = document.getElementById('allUsersVoteStatus');
+const usersVoteList = document.getElementById('usersVoteList'); // The <ul> inside allUsersVoteStatus
+
 // Admin elements
 const adminControlsDiv = document.getElementById('adminControlsDiv');
 const pollQuestionInput = document.getElementById('pollQuestionInput');
 const updateQuestionButton = document.getElementById('updateQuestionButton');
-const userToClearVoteInput = document.getElementById('userToClearVoteInput');
-const clearVoteButton = document.getElementById('clearVoteButton');
+const userToClearVoteInput = document.getElementById('userToClearVoteInput'); // Still present for direct UID input if needed
+const clearVoteButton = document.getElementById('clearVoteButton'); // Still present for direct UID input if needed
 const adminMessage = document.getElementById('adminMessage');
-
-// NEW: Element for displaying user list for admin
-const userListForAdmin = document.getElementById('userListForAdmin');
+const userListForAdmin = document.getElementById('userListForAdmin'); // For displaying admin's list of users
 
 
 // Global state variables
 let currentUser = null;
 let hasVotedCurrentUser = false;
-let isAdmin = false; // GLOBAL isAdmin variable
+let isAdmin = false;
 
 
 // ==============================================
@@ -96,6 +104,13 @@ function showPage(pageId) {
     displayMessage(authMessage, '', '');
     displayMessage(voteMessage, '', '');
     displayMessage(adminMessage, '', '');
+
+    // If navigating to pollPage, ensure relevant data is updated
+    if (pageId === 'pollPage' && currentUser) {
+        checkUserVoteStatus(currentUser.uid); // Your vote status
+        fetchPollCounts(); // Global poll counts and question
+        displayAllUsersVoteStatus(); // NEW: All users' vote status
+    }
 }
 
 /**
@@ -140,14 +155,11 @@ authForm.addEventListener('submit', async (e) => {
     const password = passwordInput.value;
     displayMessage(authMessage, '', ''); // Clear previous messages
 
-    // Disable login button during auth operation
     loginButton.disabled = true;
 
     try {
         await auth.signInWithEmailAndPassword(email, password);
-        // onAuthStateChanged will handle UI update if successful
         displayMessage(authMessage, 'Login successful!', 'success');
-        // Inputs are cleared by onAuthStateChanged when page switches
     } catch (error) {
         console.error("Login failed:", error.code, error.message);
         let errorMessage = "Login failed. Please check your credentials.";
@@ -158,7 +170,6 @@ authForm.addEventListener('submit', async (e) => {
         }
         displayMessage(authMessage, errorMessage, 'error');
     } finally {
-        // Re-enable login button regardless of success or failure
         loginButton.disabled = false;
     }
 });
@@ -170,7 +181,6 @@ logoutButton.addEventListener('click', async () => {
     try {
         await auth.signOut();
         displayMessage(authMessage, 'You have been logged out.', 'success');
-        // onAuthStateChanged will handle showing loginPage
     } catch (error) {
         console.error("Logout failed:", error.message);
         displayMessage(authMessage, "Failed to log out. Please try again.", 'error');
@@ -184,17 +194,10 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         // User is signed in
         currentUser = user;
-
         let displayedUsername = user.email;
+        isAdmin = false; // Reset isAdmin on every login check
 
-        // Reset global isAdmin to false
-        isAdmin = false;
-
-        // Fetch user profile (username and isAdmin status)
-        const userProfileRef = db.collection("users").doc(user.uid);
-
-        console.log("Auth State Changed: User logged in.");
-        console.log("User UID:", user.uid);
+        const userProfileRef = usersCollection.doc(user.uid);
 
         try {
             const userProfileSnap = await userProfileRef.get();
@@ -206,52 +209,53 @@ auth.onAuthStateChanged(async (user) => {
                 if (userData.isAdmin === true) {
                     isAdmin = true;
                 }
-                console.log("Firestore Data for user:", userData);
             } else {
                 console.log("User profile document does not exist in Firestore for UID:", user.uid);
+                // Optionally, create a basic user profile if it doesn't exist (e.g., for new registrations)
+                await userProfileRef.set({
+                    username: user.email.split('@')[0], // Use part of email as default username
+                    email: user.email,
+                    isAdmin: false
+                }, { merge: true }); // Use merge to avoid overwriting existing fields if they exist
             }
         } catch (error) {
-            console.error("Error fetching user profile:", error);
+            console.error("Error fetching or creating user profile:", error);
             displayedUsername = user.email + " (Error fetching username)";
         }
-
-        console.log("Global isAdmin value after fetching profile:", isAdmin);
 
         loggedInUsernameSpan.textContent = displayedUsername;
         pollUserEmailSpan.textContent = displayedUsername;
 
-        // Admin UI Visibility
+        // Admin UI Visibility and user list loading
         if (isAdmin) {
-            // Admin controls are now inside pollPage, will only be visible when pollPage is active
             adminControlsDiv.classList.remove('hidden');
-            loadUserListForAdmin(); // NEW: Load user list for admin
-            console.log("Admin controls should now be VISIBLE (on poll page).");
+            loadUserListForAdmin(); // Load user list for admin
         } else {
-            adminControlsDiv.classList.add('hidden'); // Ensure it's hidden if not admin
-            if (userListForAdmin) userListForAdmin.innerHTML = ''; // NEW: Clear user list if not admin
-            console.log("Admin controls should now be HIDDEN.");
+            adminControlsDiv.classList.add('hidden');
+            if (userListForAdmin) userListForAdmin.innerHTML = ''; // Clear admin user list if not admin
         }
-        console.log("Current adminControlsDiv classes:", adminControlsDiv.classList.value);
 
         emailInput.value = '';
         passwordInput.value = '';
 
         showPage('menuPage');
 
-        // After logging in, always check vote status and fetch poll counts for the poll page
+        // Always check vote status and fetch poll counts/all votes after login
+        // These are also called within showPage('pollPage') for re-entry scenarios
         await checkUserVoteStatus(currentUser.uid);
         await fetchPollCounts();
+        await displayAllUsersVoteStatus(); // Initial load of all votes on login
     } else {
         // User is signed out
         currentUser = null;
         hasVotedCurrentUser = false;
         yourVoteStatusSpan.textContent = 'Not Voted';
         setPollButtonsDisabled(true);
-        isAdmin = false; // Reset global isAdmin on logout
-        adminControlsDiv.classList.add('hidden'); // Hide admin controls on logout
-        if (userListForAdmin) userListForAdmin.innerHTML = ''; // NEW: Clear user list on logout
+        isAdmin = false;
+        adminControlsDiv.classList.add('hidden');
+        if (userListForAdmin) userListForAdmin.innerHTML = ''; // Clear admin user list on logout
+        if (usersVoteList) usersVoteList.innerHTML = '<li>Please log in to see votes.</li>'; // Clear all user votes on logout
         showPage('loginPage');
-        console.log("Auth State Changed: User logged out.");
     }
 });
 
@@ -306,6 +310,7 @@ async function fetchPollCounts() {
             }
 
         } else {
+            // Document doesn't exist, create it with initial values and a default question
             await pollDocRef.set({ yes: 0, no: 0, maybe: 0, question: "Is this the best poll ever?" });
             yesCountSpan.textContent = 0;
             noCountSpan.textContent = 0;
@@ -320,6 +325,60 @@ async function fetchPollCounts() {
         displayMessage(voteMessage, "Error fetching poll data.", 'error');
     }
 }
+
+/**
+ * NEW FEATURE: Displays a list of all registered users and their current vote status.
+ * Visible to all logged-in users on the poll page.
+ */
+async function displayAllUsersVoteStatus() {
+    if (!usersVoteList) return; // Ensure element exists
+
+    usersVoteList.innerHTML = '<li>Loading user votes...</li>'; // Show loading message
+
+    try {
+        // Fetch all users
+        const usersSnapshot = await usersCollection.get();
+        const allUsers = {};
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            allUsers[doc.id] = userData.username || userData.email.split('@')[0]; // Use username or part of email
+        });
+
+        // Fetch all votes
+        const votesSnapshot = await usersVotedCollection.get();
+        const userVotes = {};
+        votesSnapshot.forEach(doc => {
+            userVotes[doc.id] = doc.data().voteType;
+        });
+
+        // Generate the list
+        usersVoteList.innerHTML = ''; // Clear loading message
+        if (Object.keys(allUsers).length === 0) {
+            usersVoteList.innerHTML = '<li>No users registered yet.</li>';
+            return;
+        }
+
+        // Sort users alphabetically by username
+        const sortedUserUids = Object.keys(allUsers).sort((uidA, uidB) =>
+            allUsers[uidA].localeCompare(allUsers[uidB])
+        );
+
+        sortedUserUids.forEach(uid => {
+            const username = allUsers[uid];
+            const voteType = userVotes[uid] || 'Not Voted';
+            const listItem = document.createElement('li');
+            const voteClass = voteType.toLowerCase().replace(' ', '-'); // For CSS styling
+
+            listItem.innerHTML = `<span>${username}:</span> <span class="vote-status ${voteClass}">${voteType}</span>`;
+            usersVoteList.appendChild(listItem);
+        });
+
+    } catch (error) {
+        console.error("Error displaying all users' vote status:", error);
+        usersVoteList.innerHTML = '<li>Error loading user votes. Please check Firestore rules.</li>';
+    }
+}
+
 
 /**
  * Handles a user's vote.
@@ -342,11 +401,8 @@ async function handleVote(voteType) {
     try {
         await db.runTransaction(async (transaction) => {
             const currentPollDoc = await transaction.get(pollDocRef);
-            if (!currentPollDoc.exists) {
-                transaction.set(pollDocRef, { yes: 0, no: 0, maybe: 0 });
-            }
+            let currentData = currentPollDoc.data() || { yes: 0, no: 0, maybe: 0 }; // Initialize if doc doesn't exist
 
-            const currentData = currentPollDoc.data();
             const newCounts = {
                 yes: currentData.yes || 0,
                 no: currentData.no || 0,
@@ -366,17 +422,18 @@ async function handleVote(voteType) {
         hasVotedCurrentUser = true;
         yourVoteStatusSpan.textContent = voteType;
         await fetchPollCounts();
+        await displayAllUsersVoteStatus(); // Update all votes display
         displayMessage(voteMessage, "Your vote has been recorded!", 'success');
 
     } catch (e) {
         console.error("Error voting:", e);
         let errorMessage = "Failed to record your vote. Please try again.";
         if (e.code === 'permission-denied') {
-            await checkUserVoteStatus(currentUser.uid);
+            await checkUserVoteStatus(currentUser.uid); // Re-check state to confirm if user has voted
             if (hasVotedCurrentUser) {
-                 errorMessage = "You have already voted!";
+                errorMessage = "You have already voted!";
             } else {
-                 errorMessage = "Missing or insufficient permissions. Check Firestore rules.";
+                errorMessage = "Missing or insufficient permissions. Check Firestore rules.";
             }
         }
         displayMessage(voteMessage, errorMessage, 'error');
@@ -391,96 +448,49 @@ async function handleVote(voteType) {
 // ==============================================
 
 /**
- * Fetches and displays a list of all registered users (username and UID) for admin use.
+ * NEW FEATURE: Resets poll votes and updates the question.
+ * @param {string} newQuestion - The new poll question.
  */
-async function loadUserListForAdmin() {
-    if (!userListForAdmin) return; // Ensure element exists
-
-    userListForAdmin.innerHTML = '<h4>Registered Users:</h4><ul id="adminUserList"></ul>';
-    const adminUserList = document.getElementById('adminUserList');
-    if (!adminUserList) return;
+async function resetPollVotesAndQuestion(newQuestion) {
+    displayMessage(adminMessage, 'Updating question and clearing votes...', '');
 
     try {
-        const usersSnapshot = await db.collection("users").get();
-        if (usersSnapshot.empty) {
-            adminUserList.innerHTML = '<li>No users registered yet.</li>';
-            return;
-        }
+        await db.runTransaction(async (transaction) => {
+            // 1. Reset poll counts and update question
+            transaction.set(pollDocRef, {
+                yes: 0,
+                no: 0,
+                maybe: 0,
+                question: newQuestion,
+            });
 
-        usersSnapshot.forEach(doc => {
-            const userData = doc.data();
-            const uid = doc.id;
-            const username = userData.username || userData.email || 'No Username'; // Fallback to email or a default
-
-            const listItem = document.createElement('li');
-            listItem.classList.add('user-list-item'); // Add a class for styling
-            listItem.innerHTML = `<strong>${username}</strong> (UID: <span class="user-uid">${uid}</span>)`;
-
-            const copyButton = document.createElement('button');
-            copyButton.textContent = 'Copy UID';
-            copyButton.classList.add('copy-uid-button'); // Add a class for styling
-            copyButton.onclick = () => {
-                navigator.clipboard.writeText(uid)
-                    .then(() => {
-                        console.log('UID copied:', uid);
-                        copyButton.textContent = 'Copied!';
-                        setTimeout(() => copyButton.textContent = 'Copy UID', 1500);
-                    })
-                    .catch(err => console.error('Failed to copy UID:', err));
-            };
-            listItem.appendChild(copyButton);
-            adminUserList.appendChild(listItem);
+            // 2. Delete all user vote records
+            const votesSnapshot = await usersVotedCollection.get();
+            votesSnapshot.forEach(doc => {
+                transaction.delete(doc.ref);
+            });
         });
+
+        displayMessage(adminMessage, 'Poll question updated and all votes cleared!', 'success');
+        // Update UI
+        pollQuestionInput.value = newQuestion; // Ensure input reflects new question
+        await fetchPollCounts(); // Re-fetch global counts (should be 0)
+        await checkUserVoteStatus(currentUser.uid); // Reset current user's vote status
+        await displayAllUsersVoteStatus(); // Update all votes display
+        await loadUserListForAdmin(); // Refresh admin user list to show cleared votes/new state
     } catch (error) {
-        console.error("Error loading user list for admin:", error);
-        adminUserList.innerHTML = '<li>Error loading user list. Check Firestore rules for "users" collection.</li>';
+        console.error("Error resetting poll votes and question:", error);
+        displayMessage(adminMessage, "Failed to update question and clear votes. Check console and rules.", 'error');
     }
 }
 
-
 /**
- * Handles updating the poll question by an admin.
+ * NEW FEATURE: Clears a specific user's vote. Used by admin list buttons and input field.
+ * @param {string} targetUid - The UID of the user whose vote to clear.
  */
-updateQuestionButton.addEventListener('click', async () => {
-    if (!currentUser || !isAdmin) {
-        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
-        return;
-    }
+async function clearSpecificUserVote(targetUid) {
+    displayMessage(adminMessage, `Clearing vote for ${targetUid}...`, '');
 
-    const newQuestion = pollQuestionInput.value.trim();
-    if (!newQuestion) {
-        displayMessage(adminMessage, "Poll question cannot be empty.", 'error');
-        return;
-    }
-
-    displayMessage(adminMessage, 'Updating question...', '');
-    try {
-        await pollDocRef.update({ question: newQuestion });
-        displayMessage(adminMessage, 'Poll question updated!', 'success');
-        await fetchPollCounts();
-    } catch (error) {
-        console.error("Error updating poll question:", error);
-        displayMessage(adminMessage, "Failed to update question. Check console and rules.", 'error');
-    }
-});
-
-/**
- * Handles clearing a user's vote by an admin.
- * This involves deleting the user's vote record and decrementing the poll count.
- */
-clearVoteButton.addEventListener('click', async () => {
-    if (!currentUser || !isAdmin) {
-        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
-        return;
-    }
-
-    const targetUid = userToClearVoteInput.value.trim();
-    if (!targetUid) {
-        displayMessage(adminMessage, "Please enter a User UID to clear.", 'error');
-        return;
-    }
-
-    displayMessage(adminMessage, 'Clearing vote...', '');
     try {
         await db.runTransaction(async (transaction) => {
             const userVoteDocRef = usersVotedCollection.doc(targetUid);
@@ -504,13 +514,21 @@ clearVoteButton.addEventListener('click', async () => {
         });
 
         displayMessage(adminMessage, `Vote for ${targetUid} cleared successfully!`, 'success');
-        userToClearVoteInput.value = '';
-        await fetchPollCounts();
+        userToClearVoteInput.value = ''; // Clear input field
+        // Update UI
+        await fetchPollCounts(); // Re-fetch global counts
+        await displayAllUsersVoteStatus(); // Update all votes display
+        // If the cleared user is the current logged-in user, allow them to vote again
         if (currentUser && currentUser.uid === targetUid) {
             hasVotedCurrentUser = false;
             yourVoteStatusSpan.textContent = 'Not Voted';
             setPollButtonsDisabled(false);
         }
+        // Refresh admin user list to reflect cleared vote
+        if (isAdmin) {
+            loadUserListForAdmin();
+        }
+
     } catch (error) {
         console.error("Error clearing user vote:", error);
         let errorMessage = "Failed to clear vote. ";
@@ -524,6 +542,115 @@ clearVoteButton.addEventListener('click', async () => {
             setPollButtonsDisabled(false);
         }
     }
+}
+
+
+/**
+ * Fetches and displays a list of all registered users (username and UID) for admin use.
+ * Includes "Clear Vote" buttons next to each user.
+ */
+async function loadUserListForAdmin() {
+    if (!userListForAdmin) return; // Ensure element exists
+
+    userListForAdmin.innerHTML = '<h4>Registered Users:</h4><ul id="adminUserList"><li>Loading admin user list...</li></ul>';
+    const adminUserList = document.getElementById('adminUserList');
+    if (!adminUserList) return;
+
+    try {
+        const usersSnapshot = await usersCollection.get();
+        const votesSnapshot = await usersVotedCollection.get(); // Fetch votes to show status
+
+        const userVotes = {};
+        votesSnapshot.forEach(doc => {
+            userVotes[doc.id] = doc.data().voteType;
+        });
+
+        adminUserList.innerHTML = ''; // Clear loading message
+
+        if (usersSnapshot.empty) {
+            adminUserList.innerHTML = '<li>No users registered yet.</li>';
+            return;
+        }
+
+        // Sort users alphabetically by username
+        const sortedUsers = [];
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            sortedUsers.push({
+                uid: doc.id,
+                username: userData.username || userData.email.split('@')[0], // Use username or part of email
+                voteStatus: userVotes[doc.id] || 'Not Voted'
+            });
+        });
+
+        sortedUsers.sort((a, b) => a.username.localeCompare(b.username));
+
+
+        sortedUsers.forEach(user => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('user-list-item');
+            const voteClass = user.voteStatus.toLowerCase().replace(' ', '-');
+
+            listItem.innerHTML = `
+                <div>
+                    <strong>${user.username}</strong>
+                    <span class="vote-status ${voteClass}">(${user.voteStatus})</span>
+                    <br>
+                    <span class="user-uid">UID: ${user.uid}</span>
+                </div>
+            `;
+
+            // NEW: Clear vote button next to each user
+            const clearUserButton = document.createElement('button');
+            clearUserButton.textContent = 'Clear Vote';
+            clearUserButton.classList.add('copy-uid-button'); // Reuse styling for now
+            clearUserButton.onclick = () => clearSpecificUserVote(user.uid);
+            listItem.appendChild(clearUserButton);
+
+            adminUserList.appendChild(listItem);
+        });
+
+    } catch (error) {
+        console.error("Error loading user list for admin:", error);
+        adminUserList.innerHTML = '<li>Error loading user list. Check Firestore rules.</li>';
+    }
+}
+
+
+/**
+ * Handles updating the poll question by an admin. Now also clears votes.
+ */
+updateQuestionButton.addEventListener('click', async () => {
+    if (!currentUser || !isAdmin) {
+        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
+        return;
+    }
+
+    const newQuestion = pollQuestionInput.value.trim();
+    if (!newQuestion) {
+        displayMessage(adminMessage, "Poll question cannot be empty.", 'error');
+        return;
+    }
+
+    // NEW: Call the function that resets votes and updates question
+    await resetPollVotesAndQuestion(newQuestion);
+});
+
+/**
+ * Handles clearing a user's vote by an admin via the input field.
+ */
+clearVoteButton.addEventListener('click', async () => {
+    if (!currentUser || !isAdmin) {
+        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
+        return;
+    }
+    const targetUid = userToClearVoteInput.value.trim();
+    if (!targetUid) {
+        displayMessage(adminMessage, "Please enter a User UID to clear.", 'error');
+        return;
+    }
+    // Call the shared function to clear specific user's vote
+    await clearSpecificUserVote(targetUid);
 });
 
 
@@ -544,7 +671,7 @@ backToMenuFromNewPageButton.addEventListener('click', () => showPage('menuPage')
 
 
 // ==============================================
-//            Initial App Load & Setup
+//           Initial App Load & Setup
 // ==============================================
 document.addEventListener('DOMContentLoaded', () => {
     if (!auth.currentUser) {
