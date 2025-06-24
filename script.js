@@ -283,27 +283,89 @@ logoutButton.addEventListener('click', async () => {
  */
 auth.onAuthStateChanged(async (user) => {
     if (user) {
-        // ... (existing code) ...
+        // User is signed in
+        currentUser = user;
 
-        // Remove the 'let' here, just assign to the global isAdmin
-        isAdmin = false; // Reset for safety
+        let displayedUsername = user.email;
 
-        // ... (fetch user profile code) ...
+        // Reset global isAdmin to false at the beginning of each auth state change,
+        // so it only becomes true if explicitly fetched from Firestore.
+        // Make sure you do NOT use 'let' here, as isAdmin is now global.
+        isAdmin = false;
 
-        if (userProfileSnap.exists) {
-            const userData = userProfileSnap.data();
-            if (userData.username) {
-                displayedUsername = userData.username;
+        // Fetch user profile (username and isAdmin status)
+        const userProfileRef = db.collection("users").doc(user.uid);
+
+        // --- DEBUGGING LOGS START ---
+        console.log("Auth State Changed: User logged in.");
+        console.log("User UID:", user.uid);
+        // --- DEBUGGING LOGS END ---
+
+        try {
+            const userProfileSnap = await userProfileRef.get();
+            if (userProfileSnap.exists) {
+                const userData = userProfileSnap.data();
+                if (userData.username) {
+                    displayedUsername = userData.username;
+                }
+                // Assign to the global isAdmin variable
+                if (userData.isAdmin === true) { // Check if isAdmin is explicitly true
+                    isAdmin = true;
+                }
+                // --- DEBUGGING LOGS START ---
+                console.log("Firestore Data for user:", userData);
+                // --- DEBUGGING LOGS END ---
+            } else {
+                console.log("User profile document does not exist in Firestore for UID:", user.uid);
             }
-            if (userData.isAdmin === true) {
-                isAdmin = true; // Set the global isAdmin variable
-            }
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            displayedUsername = user.email + " (Error fetching username)";
         }
-        // ... (rest of the function) ...
-    }
-    // ... (rest of the function) ...
-});
 
+        // --- DEBUGGING LOGS START ---
+        console.log("Global isAdmin value after fetching profile:", isAdmin);
+        // --- DEBUGGING LOGS END ---
+
+        loggedInUsernameSpan.textContent = displayedUsername;
+        pollUserEmailSpan.textContent = displayedUsername;
+
+        // Admin UI Visibility
+        if (isAdmin) {
+            adminControlsDiv.classList.remove('hidden');
+            // --- DEBUGGING LOGS START ---
+            console.log("Admin controls should now be VISIBLE.");
+            // --- DEBUGGING LOGS END ---
+        } else {
+            adminControlsDiv.classList.add('hidden'); // Ensure it's hidden if not admin
+            // --- DEBUGGING LOGS START ---
+            console.log("Admin controls should now be HIDDEN.");
+            // --- DEBUGGING LOGS END ---
+        }
+        // --- DEBUGGING LOGS START ---
+        console.log("Current adminControlsDiv classes:", adminControlsDiv.classList.value);
+        // --- DEBUGGING LOGS END ---
+
+        emailInput.value = '';
+        passwordInput.value = '';
+
+        showPage('menuPage');
+
+        // After logging in, always check vote status and fetch poll counts for the poll page
+        await checkUserVoteStatus(currentUser.uid);
+        await fetchPollCounts(); // This function will also now fetch the question
+    } else {
+        // User is signed out
+        currentUser = null;
+        hasVotedCurrentUser = false;
+        yourVoteStatusSpan.textContent = 'Not Voted';
+        setPollButtonsDisabled(true);
+        isAdmin = false; // Reset global isAdmin on logout
+        adminControlsDiv.classList.add('hidden'); // Hide admin controls on logout
+        showPage('loginPage');
+        console.log("Auth State Changed: User logged out.");
+    }
+});
 // ==============================================
 //             Poll Logic (Firestore)
 // ==============================================
