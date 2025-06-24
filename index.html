@@ -4,15 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ad-Vote Poll Application</title>
-    <!-- Link to your CSS file -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="app-container">
-        <!-- ============================================== -->
-        <!--                1. Login/Auth Page              -->
-        <!-- ============================================== -->
         <div id="loginPage" class="app-page">
             <h2>Please Log In or Register</h2>
             <p id="authMessage" class="message-box error"></p>
@@ -29,9 +25,6 @@
             </form>
         </div>
 
-        <!-- ============================================== -->
-        <!--                 2. Menu Page                   -->
-        <!-- ============================================== -->
         <div id="menuPage" class="app-page hidden">
             <p class="user-status">Welcome, <span id="loggedInUsername">User</span>!</p>
             <h2>Main Menu</h2>
@@ -40,9 +33,6 @@
             <button id="logoutButton" class="danger-button">Logout</button>
         </div>
 
-        <!-- ============================================== -->
-        <!--              3. Vote Poll Page                 -->
-        <!-- ============================================== -->
         <div id="pollPage" class="app-page hidden">
             <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
             <h2 id="pollQuestionDisplay">Loading Poll Question...</h2>
@@ -60,11 +50,18 @@
             <p id="voteMessage" class="message-box"></p>
             <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
 
-            <!-- ****** CORRECT LOCATION FOR ADMIN CONTROLS ****** -->
+            <div id="allUsersVoteStatus" class="all-votes-section">
+                <h4>All User Votes:</h4>
+                <ul id="usersVoteList">
+                    <li>Loading votes...</li>
+                </ul>
+            </div>
+
             <div id="adminControlsDiv" class="admin-section hidden">
                 <h3>Admin Controls</h3>
+                <div class="admin-message" id="adminMessage" style="display: none;"></div>
                 <div class="input-group">
-                    <label for="pollQuestionInput">Update Poll Question:</label>
+                    <label for="pollQuestionInput">Update Poll Question (Clears all votes!):</label>
                     <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
                     <button id="updateQuestionButton">Update Question</button>
                 </div>
@@ -73,16 +70,10 @@
                     <input type="text" id="userToClearVoteInput" placeholder="Enter user UID to clear vote">
                     <button id="clearVoteButton">Clear Vote</button>
                 </div>
-                <div id="adminMessage" class="message-box"></div>
-                <!-- NEW: Area for displaying user list for admin -->
                 <div id="userListForAdmin" class="user-list-container"></div>
             </div>
-            <!-- ********************************************** -->
         </div>
 
-        <!-- ============================================== -->
-        <!--                 4. New Page                    -->
-        <!-- ============================================== -->
         <div id="newPage" class="app-page hidden">
             <h2>This is Your New Page</h2>
             <p>Work In Progress.</p>
@@ -91,12 +82,10 @@
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!--            Firebase SDK & Your Scripts         -->
-    <!-- ============================================== -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
     <script src="script.js"></script>
 
 </body>
