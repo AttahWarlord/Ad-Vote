@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ad-Vote Poll Application</title>
     <!-- Link to your CSS file -->
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -40,21 +40,6 @@
             <button id="logoutButton" class="danger-button">Logout</button>
         </div>
 
-        <div id="adminControlsDiv" class="hidden">
-    <h3>Admin Controls</h3>
-    <div class="input-group">
-        <label for="pollQuestionInput">Update Poll Question:</label>
-        <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
-        <button id="updateQuestionButton">Update Question</button>
-    </div>
-    <div class="input-group">
-        <label for="userToClearVoteInput">Clear User's Vote (by UID):</label>
-        <input type="text" id="userToClearVoteInput" placeholder="Enter user UID to clear vote">
-        <button id="clearVoteButton">Clear Vote</button>
-    </div>
-    <div id="adminMessage" class="message-box"></div>
-</div>
-
         <!-- ============================================== -->
         <!--              3. Vote Poll Page                 -->
         <!-- ============================================== -->
@@ -74,10 +59,29 @@
             </div>
             <p id="voteMessage" class="message-box"></p>
             <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
+
+            <!-- ****** CORRECT LOCATION FOR ADMIN CONTROLS ****** -->
+            <div id="adminControlsDiv" class="admin-section hidden">
+                <h3>Admin Controls</h3>
+                <div class="input-group">
+                    <label for="pollQuestionInput">Update Poll Question:</label>
+                    <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
+                    <button id="updateQuestionButton">Update Question</button>
+                </div>
+                <div class="input-group">
+                    <label for="userToClearVoteInput">Clear User's Vote (by UID):</label>
+                    <input type="text" id="userToClearVoteInput" placeholder="Enter user UID to clear vote">
+                    <button id="clearVoteButton">Clear Vote</button>
+                </div>
+                <div id="adminMessage" class="message-box"></div>
+                <!-- NEW: Area for displaying user list for admin -->
+                <div id="userListForAdmin" class="user-list-container"></div>
+            </div>
+            <!-- ********************************************** -->
         </div>
 
         <!-- ============================================== -->
-        <!--                4. New Page                     -->
+        <!--                 4. New Page                    -->
         <!-- ============================================== -->
         <div id="newPage" class="app-page hidden">
             <h2>This is Your New Page</h2>
@@ -90,13 +94,10 @@
     <!-- ============================================== -->
     <!--            Firebase SDK & Your Scripts         -->
     <!-- ============================================== -->
-    <!-- Firebase SDK (using compat versions for broader compatibility) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-
-    <!-- Your main application JavaScript -->
-    <script src="script.js"></script> 
+    <script src="script.js"></script>
 
 </body>
 </html>
