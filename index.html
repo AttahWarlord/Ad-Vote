@@ -11,7 +11,7 @@
 
     <div class="app-container">
         <!-- ============================================== -->
-        <!--                1. Login/Auth Page              -->
+        <!--           1. Login/Auth Page                   -->
         <!-- ============================================== -->
         <div id="loginPage" class="app-page">
             <h2>Please Log In or Register</h2>
@@ -30,38 +30,39 @@
         </div>
 
         <!-- ============================================== -->
-        <!--                 2. Menu Page                   -->
+        <!--           2. Menu Page                         -->
         <!-- ============================================== -->
         <div id="menuPage" class="app-page hidden">
             <p class="user-status">Welcome, <span id="loggedInUsername">User</span>!</p>
             <h2>Main Menu</h2>
             <button id="goToPollButton" class="main-button">Go to Vote Poll</button>
-            <button id="goToNewPageButton" class="main-button">Go to Another Page</button>
+            <!-- RENAMED BUTTON: goToNewPageButton to goToCurrencyPageButton -->
+            <button id="goToCurrencyPageButton" class="main-button">Go to Currency Hub</button>
             <button id="logoutButton" class="danger-button">Logout</button>
         </div>
 
         <!-- ============================================== -->
-        <!--               3. Vote Poll Page                -->
+        <!--           3. Vote Poll Page                    -->
         <!-- ============================================== -->
         <div id="pollPage" class="app-page hidden">
             <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
             <h2 id="pollQuestionDisplay">Loading Poll Question...</h2>
             <div class="buttons-container">
                 <button id="voteYes" class="poll-button yes-button">Yes</button>
-                <button id="voteNo" class="poll-button no-button">No</button>
                 <button id="voteMaybe" class="poll-button maybe-button">Maybe</button>
+                <button id="voteNo" class="poll-button no-button">No</button>
             </div>
             <div class="results-container">
                 <p>Yes votes: <span id="yesCount">0</span></p>
-                <p>No votes: <span id="noCount">0</span></p>
                 <p>Maybe votes: <span id="maybeCount">0</span></p>
+                <p>No votes: <span id="noCount">0</span></p>
                 <p class="small-text">(Your vote: <span id="yourVoteStatus">Not Voted</span>)</p>
             </div>
             <p id="voteMessage" class="message-box"></p>
             <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
 
             <!-- NEW: All Users Vote Status Section (visible to ALL logged-in users) -->
-            <div id="allUsersVoteStatus" class="all-votes-section">
+            <div id="allUsersVoteStatus" class="all-votes-section user-list-container">
                 <h4>All User Votes:</h4>
                 <ul id="usersVoteList">
                     <li>Loading votes...</li>
@@ -83,30 +84,44 @@
                 <div id="userListForAdmin" class="user-list-container">
                     <!-- User list populated by JS -->
                 </div>
-                 <!-- The direct UID clear is removed as per your request for easier clearing via list -->
-                 <!-- If you still want it, uncomment this:
-                <div class="input-group">
-                    <label for="userToClearVoteInput">Clear User's Vote (by UID):</label>
-                    <input type="text" id="userToClearVoteInput" placeholder="Enter user UID to clear vote">
-                    <button id="clearVoteButton" class="danger-button">Clear Vote</button>
-                </div>
-                 -->
             </div>
         </div>
 
         <!-- ============================================== -->
-        <!--                 4. New Page                    -->
+        <!--           NEW: 4. Currency Hub Page            -->
         <!-- ============================================== -->
-        <div id="newPage" class="app-page hidden">
-            <h2>This is Your New Page</h2>
-            <p>Work In Progress.</p>
-            <p>Prob Turn It Into A Plan.</p>
-            <button id="backToMenuFromNewPage" class="secondary-button">Back to Menu</button>
+        <div id="currencyPage" class="app-page hidden">
+            <h2>Your Currency Hub</h2>
+            <p class="user-status">Current Balance: <span id="userCurrencyBalance">0</span> Coins</p>
+
+            <div class="currency-nav">
+                <button id="goToClickerButton" class="main-button">Clicker Game</button>
+                <!-- Add more currency feature buttons here later -->
+            </div>
+
+            <!-- Container for currency sub-pages -->
+            <div id="currencySubPagesContainer">
+                <!-- ============================================== -->
+                <!--        Currency: Clicker Game Sub-Page         -->
+                <!-- ============================================== -->
+                <div id="clickerGamePage" class="currency-sub-page hidden">
+                    <h3>Click to Earn Coins!</h3>
+                    <p>Total Clicks: <span id="clickCountDisplay">0</span></p>
+                    <p>Coins per Click: <span id="earningPerClick">1</span></p>
+                    <button id="clickButton" class="main-button poll-button">Click Me!</button>
+                    <button id="backToCurrencyHubButton" class="secondary-button">Back to Hub</button>
+                </div>
+
+                <!-- Add more currency sub-pages here later -->
+            </div>
+
+            <!-- RENAMED BUTTON: backToMenuFromNewPage to backToMenuFromCurrency -->
+            <button id="backToMenuFromCurrency" class="secondary-button">Back to Menu</button>
         </div>
     </div>
 
     <!-- ============================================== -->
-    <!--            Firebase SDK & Your Scripts         -->
+    <!--          Firebase SDK & Your Scripts           -->
     <!-- ============================================== -->
     <!-- Firebase SDK (using compat versions for broader compatibility) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
