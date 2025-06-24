@@ -23,7 +23,7 @@ const pollDocRef = db.collection("polls").doc("poll_results");
 const usersVotedCollection = db.collection("users_voted");
 
 // ==============================================
-//           HTML Element References (moved here for better organization)
+//           HTML Element References
 // ==============================================
 // Page containers
 const loginPage = document.getElementById('loginPage');
@@ -55,7 +55,7 @@ const maybeCountSpan = document.getElementById('maybeCount');
 const yourVoteStatusSpan = document.getElementById('yourVoteStatus');
 const voteMessage = document.getElementById('voteMessage');
 const backToMenuFromPollButton = document.getElementById('backToMenuFromPoll');
-const pollQuestionDisplay = document.getElementById('pollQuestionDisplay'); // Ensure this is here
+const pollQuestionDisplay = document.getElementById('pollQuestionDisplay');
 
 // Admin elements
 const adminControlsDiv = document.getElementById('adminControlsDiv');
@@ -65,15 +65,18 @@ const userToClearVoteInput = document.getElementById('userToClearVoteInput');
 const clearVoteButton = document.getElementById('clearVoteButton');
 const adminMessage = document.getElementById('adminMessage');
 
+// NEW: Element for displaying user list for admin
+const userListForAdmin = document.getElementById('userListForAdmin');
 
-// Global state variables (declared once at top level)
-let currentUser = null; // Stores the authenticated user object
-let hasVotedCurrentUser = false; // Tracks if the current logged-in user has voted
-let isAdmin = false; // <-- GLOBAL isAdmin variable
+
+// Global state variables
+let currentUser = null;
+let hasVotedCurrentUser = false;
+let isAdmin = false; // GLOBAL isAdmin variable
 
 
 // ==============================================
-//             Utility Functions
+//           Utility Functions
 // ==============================================
 
 /**
@@ -125,7 +128,7 @@ function setPollButtonsDisabled(disabledState) {
 }
 
 // ==============================================
-//             Authentication Logic
+//           Authentication Logic
 // ==============================================
 
 /**
@@ -160,8 +163,6 @@ authForm.addEventListener('submit', async (e) => {
     }
 });
 
-// The entire registerButton.addEventListener block has been removed from here.
-
 /**
  * Handles user logout.
  */
@@ -186,16 +187,14 @@ auth.onAuthStateChanged(async (user) => {
 
         let displayedUsername = user.email;
 
-        // Reset global isAdmin to false, ensure no 'let' here as it's declared globally
-        isAdmin = false; // <-- REMOVED 'let' HERE
+        // Reset global isAdmin to false
+        isAdmin = false;
 
         // Fetch user profile (username and isAdmin status)
         const userProfileRef = db.collection("users").doc(user.uid);
 
-        // --- DEBUGGING LOGS START ---
         console.log("Auth State Changed: User logged in.");
         console.log("User UID:", user.uid);
-        // --- DEBUGGING LOGS END ---
 
         try {
             const userProfileSnap = await userProfileRef.get();
@@ -204,13 +203,10 @@ auth.onAuthStateChanged(async (user) => {
                 if (userData.username) {
                     displayedUsername = userData.username;
                 }
-                // Assign to the global isAdmin variable
                 if (userData.isAdmin === true) {
                     isAdmin = true;
                 }
-                // --- DEBUGGING LOGS START ---
                 console.log("Firestore Data for user:", userData);
-                // --- DEBUGGING LOGS END ---
             } else {
                 console.log("User profile document does not exist in Firestore for UID:", user.uid);
             }
@@ -219,28 +215,23 @@ auth.onAuthStateChanged(async (user) => {
             displayedUsername = user.email + " (Error fetching username)";
         }
 
-        // --- DEBUGGING LOGS START ---
         console.log("Global isAdmin value after fetching profile:", isAdmin);
-        // --- DEBUGGING LOGS END ---
 
         loggedInUsernameSpan.textContent = displayedUsername;
         pollUserEmailSpan.textContent = displayedUsername;
 
         // Admin UI Visibility
         if (isAdmin) {
+            // Admin controls are now inside pollPage, will only be visible when pollPage is active
             adminControlsDiv.classList.remove('hidden');
-            // --- DEBUGGING LOGS START ---
-            console.log("Admin controls should now be VISIBLE.");
-            // --- DEBUGGING LOGS END ---
+            loadUserListForAdmin(); // NEW: Load user list for admin
+            console.log("Admin controls should now be VISIBLE (on poll page).");
         } else {
             adminControlsDiv.classList.add('hidden'); // Ensure it's hidden if not admin
-            // --- DEBUGGING LOGS START ---
+            if (userListForAdmin) userListForAdmin.innerHTML = ''; // NEW: Clear user list if not admin
             console.log("Admin controls should now be HIDDEN.");
-            // --- DEBUGGING LOGS END ---
         }
-        // --- DEBUGGING LOGS START ---
         console.log("Current adminControlsDiv classes:", adminControlsDiv.classList.value);
-        // --- DEBUGGING LOGS END ---
 
         emailInput.value = '';
         passwordInput.value = '';
@@ -249,7 +240,7 @@ auth.onAuthStateChanged(async (user) => {
 
         // After logging in, always check vote status and fetch poll counts for the poll page
         await checkUserVoteStatus(currentUser.uid);
-        await fetchPollCounts(); // This function will also now fetch the question
+        await fetchPollCounts();
     } else {
         // User is signed out
         currentUser = null;
@@ -258,13 +249,14 @@ auth.onAuthStateChanged(async (user) => {
         setPollButtonsDisabled(true);
         isAdmin = false; // Reset global isAdmin on logout
         adminControlsDiv.classList.add('hidden'); // Hide admin controls on logout
+        if (userListForAdmin) userListForAdmin.innerHTML = ''; // NEW: Clear user list on logout
         showPage('loginPage');
         console.log("Auth State Changed: User logged out.");
     }
 });
 
 // ==============================================
-//             Poll Logic (Firestore)
+//           Poll Logic (Firestore)
 // ==============================================
 
 /**
@@ -277,12 +269,11 @@ async function checkUserVoteStatus(uid) {
         const docSnap = await userVoteDocRef.get();
         if (docSnap.exists) {
             hasVotedCurrentUser = true;
-            yourVoteStatusSpan.textContent = docSnap.data().voteType; // Display what they voted
-            setPollButtonsDisabled(true); // Disable if already voted
+            yourVoteStatusSpan.textContent = docSnap.data().voteType;
+            setPollButtonsDisabled(true);
         } else {
             hasVotedCurrentUser = false;
             yourVoteStatusSpan.textContent = 'Not Voted';
-            // Only enable buttons if user is currently logged in
             if (currentUser) {
                 setPollButtonsDisabled(false);
             }
@@ -291,7 +282,6 @@ async function checkUserVoteStatus(uid) {
         console.error("Error checking user vote status:", e);
         hasVotedCurrentUser = false;
         yourVoteStatusSpan.textContent = 'Error checking status';
-        // Only enable buttons if user is currently logged in
         if (currentUser) {
             setPollButtonsDisabled(false);
         }
@@ -310,15 +300,12 @@ async function fetchPollCounts() {
             noCountSpan.textContent = data.no || 0;
             maybeCountSpan.textContent = data.maybe || 0;
 
-            // Display the poll question
             pollQuestionDisplay.textContent = data.question || "Default Poll Question";
-            // Populate admin input if visible
             if (!adminControlsDiv.classList.contains('hidden')) {
                 pollQuestionInput.value = data.question || "";
             }
 
         } else {
-            // Document doesn't exist, create it with initial values and a default question
             await pollDocRef.set({ yes: 0, no: 0, maybe: 0, question: "Is this the best poll ever?" });
             yesCountSpan.textContent = 0;
             noCountSpan.textContent = 0;
@@ -339,7 +326,7 @@ async function fetchPollCounts() {
  * @param {string} voteType - The type of vote ('yes', 'no', 'maybe').
  */
 async function handleVote(voteType) {
-    displayMessage(voteMessage, '', ''); // Clear previous messages
+    displayMessage(voteMessage, '', '');
 
     if (!currentUser) {
         displayMessage(voteMessage, "You must be logged in to vote!", 'error');
@@ -350,16 +337,12 @@ async function handleVote(voteType) {
         return;
     }
 
-    setPollButtonsDisabled(true); // Client-side disable immediately to prevent double-clicks
+    setPollButtonsDisabled(true);
 
     try {
-        // --- Transactional write ---
-        // Firestore transactions ensure both updates (poll counts and user vote record) succeed or fail together.
         await db.runTransaction(async (transaction) => {
-            // Get the current poll counts
             const currentPollDoc = await transaction.get(pollDocRef);
             if (!currentPollDoc.exists) {
-                // Initialize if it doesn't exist (should be handled by fetchPollCounts, but good fallback)
                 transaction.set(pollDocRef, { yes: 0, no: 0, maybe: 0 });
             }
 
@@ -369,31 +352,27 @@ async function handleVote(voteType) {
                 no: currentData.no || 0,
                 maybe: currentData.maybe || 0
             };
-            newCounts[voteType]++; // Increment the chosen vote type
+            newCounts[voteType]++;
 
-            // Update the poll_results document
             transaction.update(pollDocRef, newCounts);
 
-            // Mark this user as having voted in their own document
             const userVoteDocRef = usersVotedCollection.doc(currentUser.uid);
             transaction.set(userVoteDocRef, {
                 voteType: voteType,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp for accuracy
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
         });
 
-        // If transaction succeeds:
         hasVotedCurrentUser = true;
-        yourVoteStatusSpan.textContent = voteType; // Update local UI
-        await fetchPollCounts(); // Fetch updated global counts
+        yourVoteStatusSpan.textContent = voteType;
+        await fetchPollCounts();
         displayMessage(voteMessage, "Your vote has been recorded!", 'success');
 
     } catch (e) {
         console.error("Error voting:", e);
         let errorMessage = "Failed to record your vote. Please try again.";
         if (e.code === 'permission-denied') {
-            // This is crucial: If the poll_results rule denied it, it's likely a second vote attempt.
-            await checkUserVoteStatus(currentUser.uid); // Re-check state to confirm if user has voted
+            await checkUserVoteStatus(currentUser.uid);
             if (hasVotedCurrentUser) {
                  errorMessage = "You have already voted!";
             } else {
@@ -401,7 +380,6 @@ async function handleVote(voteType) {
             }
         }
         displayMessage(voteMessage, errorMessage, 'error');
-        // Re-enable buttons if the vote wasn't cast (e.g., general error or permission denied without vote)
         if (!hasVotedCurrentUser) {
             setPollButtonsDisabled(false);
         }
@@ -409,15 +387,62 @@ async function handleVote(voteType) {
 }
 
 // ==============================================
-//           Admin Logic (moved here for better organization)
+//           Admin Logic
 // ==============================================
+
+/**
+ * Fetches and displays a list of all registered users (username and UID) for admin use.
+ */
+async function loadUserListForAdmin() {
+    if (!userListForAdmin) return; // Ensure element exists
+
+    userListForAdmin.innerHTML = '<h4>Registered Users:</h4><ul id="adminUserList"></ul>';
+    const adminUserList = document.getElementById('adminUserList');
+    if (!adminUserList) return;
+
+    try {
+        const usersSnapshot = await db.collection("users").get();
+        if (usersSnapshot.empty) {
+            adminUserList.innerHTML = '<li>No users registered yet.</li>';
+            return;
+        }
+
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            const uid = doc.id;
+            const username = userData.username || userData.email || 'No Username'; // Fallback to email or a default
+
+            const listItem = document.createElement('li');
+            listItem.classList.add('user-list-item'); // Add a class for styling
+            listItem.innerHTML = `<strong>${username}</strong> (UID: <span class="user-uid">${uid}</span>)`;
+
+            const copyButton = document.createElement('button');
+            copyButton.textContent = 'Copy UID';
+            copyButton.classList.add('copy-uid-button'); // Add a class for styling
+            copyButton.onclick = () => {
+                navigator.clipboard.writeText(uid)
+                    .then(() => {
+                        console.log('UID copied:', uid);
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => copyButton.textContent = 'Copy UID', 1500);
+                    })
+                    .catch(err => console.error('Failed to copy UID:', err));
+            };
+            listItem.appendChild(copyButton);
+            adminUserList.appendChild(listItem);
+        });
+    } catch (error) {
+        console.error("Error loading user list for admin:", error);
+        adminUserList.innerHTML = '<li>Error loading user list. Check Firestore rules for "users" collection.</li>';
+    }
+}
+
 
 /**
  * Handles updating the poll question by an admin.
  */
 updateQuestionButton.addEventListener('click', async () => {
-    // Corrected condition: Check global isAdmin variable
-    if (!currentUser || !isAdmin) { // Ensure user is logged in AND is admin
+    if (!currentUser || !isAdmin) {
         displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
         return;
     }
@@ -432,7 +457,7 @@ updateQuestionButton.addEventListener('click', async () => {
     try {
         await pollDocRef.update({ question: newQuestion });
         displayMessage(adminMessage, 'Poll question updated!', 'success');
-        await fetchPollCounts(); // Update display immediately
+        await fetchPollCounts();
     } catch (error) {
         console.error("Error updating poll question:", error);
         displayMessage(adminMessage, "Failed to update question. Check console and rules.", 'error');
@@ -444,12 +469,10 @@ updateQuestionButton.addEventListener('click', async () => {
  * This involves deleting the user's vote record and decrementing the poll count.
  */
 clearVoteButton.addEventListener('click', async () => {
-    // Corrected condition: Check global isAdmin variable
-    if (!currentUser || !isAdmin) { // Ensure user is logged in AND is admin
+    if (!currentUser || !isAdmin) {
         displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
         return;
     }
-    // REMOVED DUPLICATE displayMessage AND return here, as it was already handled by the correct if condition above.
 
     const targetUid = userToClearVoteInput.value.trim();
     if (!targetUid) {
@@ -472,20 +495,17 @@ clearVoteButton.addEventListener('click', async () => {
             const currentData = currentPollDoc.data();
 
             if (currentData[voteTypeToDecrement] && currentData[voteTypeToDecrement] > 0) {
-                // Decrement the specific vote count
                 transaction.update(pollDocRef, {
                     [voteTypeToDecrement]: firebase.firestore.FieldValue.increment(-1)
                 });
             }
 
-            // Delete the user's vote record
             transaction.delete(userVoteDocRef);
         });
 
         displayMessage(adminMessage, `Vote for ${targetUid} cleared successfully!`, 'success');
-        userToClearVoteInput.value = ''; // Clear input
-        await fetchPollCounts(); // Update display
-        // If the cleared user is the current logged-in user, allow them to vote again
+        userToClearVoteInput.value = '';
+        await fetchPollCounts();
         if (currentUser && currentUser.uid === targetUid) {
             hasVotedCurrentUser = false;
             yourVoteStatusSpan.textContent = 'Not Voted';
@@ -500,12 +520,15 @@ clearVoteButton.addEventListener('click', async () => {
             errorMessage += "Permission denied. Check Firestore rules.";
         }
         displayMessage(adminMessage, errorMessage, 'error');
+        if (!hasVotedCurrentUser) {
+            setPollButtonsDisabled(false);
+        }
     }
 });
 
 
 // ==============================================
-//           Event Listeners (consolidated)
+//           Event Listeners
 // ==============================================
 
 // Poll button event listeners
@@ -523,10 +546,7 @@ backToMenuFromNewPageButton.addEventListener('click', () => showPage('menuPage')
 // ==============================================
 //            Initial App Load & Setup
 // ==============================================
-// On initial page load, ensure the login page is shown.
-// The onAuthStateChanged listener will handle subsequent state changes.
 document.addEventListener('DOMContentLoaded', () => {
-    // This ensures the page is correctly displayed on initial load before auth state is fully resolved.
     if (!auth.currentUser) {
         showPage('loginPage');
     }
