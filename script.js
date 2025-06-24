@@ -288,9 +288,7 @@ auth.onAuthStateChanged(async (user) => {
 
         let displayedUsername = user.email;
 
-        // Reset global isAdmin to false at the beginning of each auth state change,
-        // so it only becomes true if explicitly fetched from Firestore.
-        // Make sure you do NOT use 'let' here, as isAdmin is now global.
+        // Reset global isAdmin to false, ensure no 'let' here as it's declared globally
         isAdmin = false;
 
         // Fetch user profile (username and isAdmin status)
@@ -298,7 +296,7 @@ auth.onAuthStateChanged(async (user) => {
 
         // --- DEBUGGING LOGS START ---
         console.log("Auth State Changed: User logged in.");
-        console.log("User UID:", user.uid);
+        console.log("User UID:", user.uid); // Ensure this line is exactly as written
         // --- DEBUGGING LOGS END ---
 
         try {
@@ -309,11 +307,11 @@ auth.onAuthStateChanged(async (user) => {
                     displayedUsername = userData.username;
                 }
                 // Assign to the global isAdmin variable
-                if (userData.isAdmin === true) { // Check if isAdmin is explicitly true
+                if (userData.isAdmin === true) {
                     isAdmin = true;
                 }
                 // --- DEBUGGING LOGS START ---
-                console.log("Firestore Data for user:", userData);
+                console.log("Firestore Data for user:", userData); // Ensure this line is exactly as written
                 // --- DEBUGGING LOGS END ---
             } else {
                 console.log("User profile document does not exist in Firestore for UID:", user.uid);
@@ -324,7 +322,7 @@ auth.onAuthStateChanged(async (user) => {
         }
 
         // --- DEBUGGING LOGS START ---
-        console.log("Global isAdmin value after fetching profile:", isAdmin);
+        console.log("Global isAdmin value after fetching profile:", isAdmin); // Ensure this line is exactly as written
         // --- DEBUGGING LOGS END ---
 
         loggedInUsernameSpan.textContent = displayedUsername;
@@ -334,16 +332,16 @@ auth.onAuthStateChanged(async (user) => {
         if (isAdmin) {
             adminControlsDiv.classList.remove('hidden');
             // --- DEBUGGING LOGS START ---
-            console.log("Admin controls should now be VISIBLE.");
+            console.log("Admin controls should now be VISIBLE."); // Ensure this line is exactly as written
             // --- DEBUGGING LOGS END ---
         } else {
             adminControlsDiv.classList.add('hidden'); // Ensure it's hidden if not admin
             // --- DEBUGGING LOGS START ---
-            console.log("Admin controls should now be HIDDEN.");
+            console.log("Admin controls should now be HIDDEN."); // Ensure this line is exactly as written
             // --- DEBUGGING LOGS END ---
         }
         // --- DEBUGGING LOGS START ---
-        console.log("Current adminControlsDiv classes:", adminControlsDiv.classList.value);
+        console.log("Current adminControlsDiv classes:", adminControlsDiv.classList.value); // Ensure this line is exactly as written
         // --- DEBUGGING LOGS END ---
 
         emailInput.value = '';
@@ -366,6 +364,7 @@ auth.onAuthStateChanged(async (user) => {
         console.log("Auth State Changed: User logged out.");
     }
 });
+
 // ==============================================
 //             Poll Logic (Firestore)
 // ==============================================
