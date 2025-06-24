@@ -23,6 +23,113 @@ const pollDocRef = db.collection("polls").doc("poll_results");
 const usersVotedCollection = db.collection("users_voted");
 
 // ==============================================
+//                   Admin
+// ==============================================
+
+// Admin elements
+const adminControlsDiv = document.getElementById('adminControlsDiv');
+const pollQuestionInput = document.getElementById('pollQuestionInput');
+const updateQuestionButton = document.getElementById('updateQuestionButton');
+const userToClearVoteInput = document.getElementById('userToClearVoteInput');
+const clearVoteButton = document.getElementById('clearVoteButton');
+const adminMessage = document.getElementById('adminMessage');
+
+// Poll elements (add this one if you didn't already for the question display)
+const pollQuestionDisplay = document.getElementById('pollQuestionDisplay');
+
+// ==============================================
+//           Admin Logic
+// ==============================================
+
+/**
+ * Handles updating the poll question by an admin.
+ */
+updateQuestionButton.addEventListener('click', async () => {
+    if (!currentUser || !adminControlsDiv.classList.contains('hidden')) { // Ensure user is logged in AND is admin
+        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
+        return;
+    }
+
+    const newQuestion = pollQuestionInput.value.trim();
+    if (!newQuestion) {
+        displayMessage(adminMessage, "Poll question cannot be empty.", 'error');
+        return;
+    }
+
+    displayMessage(adminMessage, 'Updating question...', '');
+    try {
+        await pollDocRef.update({ question: newQuestion });
+        displayMessage(adminMessage, 'Poll question updated!', 'success');
+        await fetchPollCounts(); // Update display immediately
+    } catch (error) {
+        console.error("Error updating poll question:", error);
+        displayMessage(adminMessage, "Failed to update question. Check console and rules.", 'error');
+    }
+});
+
+/**
+ * Handles clearing a user's vote by an admin.
+ * This involves deleting the user's vote record and decrementing the poll count.
+ */
+clearVoteButton.addEventListener('click', async () => {
+    if (!currentUser || !adminControlsDiv.classList.contains('hidden')) { // Ensure user is logged in AND is admin
+        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
+        return;
+    }
+
+    const targetUid = userToClearVoteInput.value.trim();
+    if (!targetUid) {
+        displayMessage(adminMessage, "Please enter a User UID to clear.", 'error');
+        return;
+    }
+
+    displayMessage(adminMessage, 'Clearing vote...', '');
+    try {
+        await db.runTransaction(async (transaction) => {
+            const userVoteDocRef = usersVotedCollection.doc(targetUid);
+            const userVoteSnap = await transaction.get(userVoteDocRef);
+
+            if (!userVoteSnap.exists) {
+                throw new Error("User has not voted or invalid UID.");
+            }
+
+            const voteTypeToDecrement = userVoteSnap.data().voteType;
+            const currentPollDoc = await transaction.get(pollDocRef);
+            const currentData = currentPollDoc.data();
+
+            if (currentData[voteTypeToDecrement] && currentData[voteTypeToDecrement] > 0) {
+                // Decrement the specific vote count
+                transaction.update(pollDocRef, {
+                    [voteTypeToDecrement]: firebase.firestore.FieldValue.increment(-1)
+                });
+            }
+
+            // Delete the user's vote record
+            transaction.delete(userVoteDocRef);
+        });
+
+        displayMessage(adminMessage, `Vote for ${targetUid} cleared successfully!`, 'success');
+        userToClearVoteInput.value = ''; // Clear input
+        await fetchPollCounts(); // Update display
+        // If the cleared user is the current logged-in user, allow them to vote again
+        if (currentUser && currentUser.uid === targetUid) {
+            hasVotedCurrentUser = false;
+            yourVoteStatusSpan.textContent = 'Not Voted';
+            setPollButtonsDisabled(false);
+        }
+    } catch (error) {
+        console.error("Error clearing user vote:", error);
+        let errorMessage = "Failed to clear vote. ";
+        if (error.message.includes("User has not voted")) {
+            errorMessage += "User has not voted or invalid UID.";
+        } else if (error.code === 'permission-denied') {
+            errorMessage += "Permission denied. Check Firestore rules.";
+        }
+        displayMessage(adminMessage, errorMessage, 'error');
+    }
+});
+
+// ==============================================
 //           HTML Element References
 // ==============================================
 // Page containers
@@ -173,40 +280,54 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         // User is signed in
         currentUser = user;
-        // Fetch username from Firestore
-        const userProfileRef = db.collection("users").doc(user.uid); // Reference to the user's profile document
-        let displayedUsername = user.email; // Default to email in case fetching fails
 
+        let displayedUsername = user.email; // Default to email
+        let isAdmin = false; // Track admin status
+
+        // Fetch user profile (username and isAdmin status)
+        const userProfileRef = db.collection("users").doc(user.uid);
         try {
             const userProfileSnap = await userProfileRef.get();
-            if (userProfileSnap.exists && userProfileSnap.data().username) {
-                displayedUsername = userProfileSnap.data().username;
+            if (userProfileSnap.exists) {
+                const userData = userProfileSnap.data();
+                if (userData.username) {
+                    displayedUsername = userData.username;
+                }
+                if (userData.isAdmin === true) { // Check if isAdmin is explicitly true
+                    isAdmin = true;
+                }
             }
         } catch (error) {
             console.error("Error fetching user profile:", error);
-            displayedUsername = user.email + " (Error fetching username)"; // Show email with an error hint
+            displayedUsername = user.email + " (Error fetching username)";
         }
 
         loggedInUsernameSpan.textContent = displayedUsername;
-        pollUserEmailSpan.textContent = displayedUsername; // <--- This line is now updated to use the fetched username
+        pollUserEmailSpan.textContent = displayedUsername;
 
-        emailInput.value = ''; // Clear login form inputs
+        // Admin UI Visibility
+        if (isAdmin) {
+            adminControlsDiv.classList.remove('hidden');
+        } else {
+            adminControlsDiv.classList.add('hidden'); // Ensure it's hidden if not admin
+        }
+
+        emailInput.value = '';
         passwordInput.value = '';
 
-        showPage('menuPage'); // Show the menu page
+        showPage('menuPage');
 
         // After logging in, always check vote status and fetch poll counts for the poll page
         await checkUserVoteStatus(currentUser.uid);
-        await fetchPollCounts();
-
+        await fetchPollCounts(); // This function will also now fetch the question
     } else {
         // User is signed out
         currentUser = null;
         hasVotedCurrentUser = false;
-        yourVoteStatusSpan.textContent = 'Not Voted'; // Reset vote status display
-        setPollButtonsDisabled(true); // Disable poll buttons when not logged in
-        
-        showPage('loginPage'); // Show the login page
+        yourVoteStatusSpan.textContent = 'Not Voted';
+        setPollButtonsDisabled(true);
+        adminControlsDiv.classList.add('hidden'); // Hide admin controls on logout
+        showPage('loginPage');
     }
 });
 
@@ -246,7 +367,7 @@ async function checkUserVoteStatus(uid) {
 }
 
 /**
- * Fetches and updates global poll counts from Firestore.
+ * Fetches and updates global poll counts and the poll question from Firestore.
  */
 async function fetchPollCounts() {
     try {
@@ -256,15 +377,27 @@ async function fetchPollCounts() {
             yesCountSpan.textContent = data.yes || 0;
             noCountSpan.textContent = data.no || 0;
             maybeCountSpan.textContent = data.maybe || 0;
+
+            // Display the poll question
+            pollQuestionDisplay.textContent = data.question || "Default Poll Question";
+            // Populate admin input if visible
+            if (!adminControlsDiv.classList.contains('hidden')) {
+                pollQuestionInput.value = data.question || "";
+            }
+
         } else {
-            // Document doesn't exist, create it with initial values
-            await pollDocRef.set({ yes: 0, no: 0, maybe: 0 });
+            // Document doesn't exist, create it with initial values and a default question
+            await pollDocRef.set({ yes: 0, no: 0, maybe: 0, question: "Is this the best poll ever?" });
             yesCountSpan.textContent = 0;
             noCountSpan.textContent = 0;
             maybeCountSpan.textContent = 0;
+            pollQuestionDisplay.textContent = "Is this the best poll ever?";
+            if (!adminControlsDiv.classList.contains('hidden')) {
+                pollQuestionInput.value = "Is this the best poll ever?";
+            }
         }
     } catch (e) {
-        console.error("Error fetching poll counts:", e);
+        console.error("Error fetching poll counts or question:", e);
         displayMessage(voteMessage, "Error fetching poll data.", 'error');
     }
 }
