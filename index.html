@@ -3,403 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vote Poll</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f4f4f4;
-            margin: 0;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 350px; /* Adjust width for better form display */
-        }
-        .container h2 {
-            margin-bottom: 25px;
-            color: #333;
-        }
-        .container label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-            text-align: left;
-        }
-        .container input[type="email"],
-        .container input[type="password"] {
-            width: calc(100% - 20px); /* Adjust for padding */
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box; /* Include padding in width */
-        }
-        .container button {
-            background-color: #007bff; /* Blue for general actions */
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 0 5px 10px;
-            transition: background-color 0.3s ease;
-        }
-        .container button:hover {
-            background-color: #0056b3;
-        }
-        .container button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        .container button.poll-button {
-            background-color: #4CAF50; /* Green for Yes */
-            margin: 0 10px;
-            font-size: 18px;
-        }
-        .container button.poll-button.no-button {
-            background-color: #f44336; /* Red for No */
-        }
-        .container button.poll-button.maybe-button {
-            background-color: #ff9800; /* Orange for Maybe */
-        }
-
-        .results-container {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #555;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-        .results-container p {
-            margin: 8px 0;
-        }
-        .results-container span {
-            font-weight: bold;
-            color: #007bff;
-        }
-        .hidden {
-            display: none;
-        }
-        .user-status {
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 1em;
-        }
-        .logout-btn {
-            background-color: #6c757d; /* Gray for logout */
-            margin-top: 10px;
-        }
-        .logout-btn:hover {
-            background-color: #5a6268;
-        }
-    </style>
+    <title>Ad-Vote Poll Application</title>
+    <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
-    <div class="container">
-        <div id="auth-container">
-            <h2>Login to Vote</h2>
-            <p id="auth-error" style="color: red;"></p>
-            <label for="email">Username:</label>
-            <input type="email" id="email" placeholder="Enter your username (e.g., myname@example.com)">
-            <label for="password">Password:</label>
-            <input type="password" id="password" placeholder="Enter your password">
-            <button id="loginBtn">Login</button>
-            <button id="signupBtn" class="hidden">Sign Up</button> </div>
 
-        <div id="poll-container" class="hidden">
-            <p class="user-status">Welcome, <span id="user-email"></span>!</p>
-            <h2>Is Vinc Hot???</h2>
+    <div class="app-container">
+        <!-- ============================================== -->
+        <!--                1. Login/Auth Page              -->
+        <!-- ============================================== -->
+        <div id="loginPage" class="app-page">
+            <h2>Please Log In or Register</h2>
+            <p id="authMessage" class="message-box error"></p>
+            <form id="authForm">
+                <div>
+                    <label for="email">Email (Username):</label>
+                    <input type="email" id="email" placeholder="e.g., yourname@example.com" required autocomplete="username">
+                </div>
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" id="loginButton" class="main-button">Log In</button>
+                <button type="button" id="registerButton" class="secondary-button">Register</button>
+            </form>
+        </div>
+
+        <!-- ============================================== -->
+        <!--                 2. Menu Page                   -->
+        <!-- ============================================== -->
+        <div id="menuPage" class="app-page hidden">
+            <p class="user-status">Welcome, <span id="loggedInUsername">User</span>!</p>
+            <h2>Main Menu</h2>
+            <button id="goToPollButton" class="main-button">Go to Vote Poll</button>
+            <button id="goToNewPageButton" class="main-button">Go to Another Page</button>
+            <button id="logoutButton" class="danger-button">Logout</button>
+        </div>
+
+        <!-- ============================================== -->
+        <!--              3. Vote Poll Page                 -->
+        <!-- ============================================== -->
+        <div id="pollPage" class="app-page hidden">
+            <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
+            <h2>Do you like this simple poll?</h2>
             <div class="buttons-container">
-                <button id="yesButton" class="poll-button">Yes</button>
-                <button id="noButton" class="poll-button no-button">No</button>
-                <button id="maybeButton" class="poll-button maybe-button">Maybe</button>
+                <button id="voteYes" class="poll-button yes-button">Yes</button>
+                <button id="voteNo" class="poll-button no-button">No</button>
+                <button id="voteMaybe" class="poll-button maybe-button">Maybe</button>
             </div>
             <div class="results-container">
                 <p>Yes votes: <span id="yesCount">0</span></p>
                 <p>No votes: <span id="noCount">0</span></p>
                 <p>Maybe votes: <span id="maybeCount">0</span></p>
-                <p><small>(Your vote: <span id="yourVoteStatus">Not Voted</span>)</small></p>
+                <p class="small-text">(Your vote: <span id="yourVoteStatus">Not Voted</span>)</p>
             </div>
-            <button id="logoutBtn" class="logout-btn">Logout</button>
+            <p id="voteMessage" class="message-box"></p>
+            <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
+        </div>
+
+        <!-- ============================================== -->
+        <!--                4. New Page                     -->
+        <!-- ============================================== -->
+        <div id="newPage" class="app-page hidden">
+            <h2>This is Your New Page</h2>
+            <p>You can add any content you like here. This page is just for demonstration purposes.</p>
+            <p>It's completely separate from the poll logic.</p>
+            <button id="backToMenuFromNewPage" class="secondary-button">Back to Menu</button>
         </div>
     </div>
 
-    <script type="module">
-        // Import the functions you need from the Firebase SDKs
-        // Make sure to use the correct version for your project
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, increment, setDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        // NEW: Import Firebase Auth functions
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    <!-- ============================================== -->
+    <!--            Firebase SDK & Your Scripts         -->
+    <!-- ============================================== -->
+    <!-- Firebase SDK (using compat versions for broader compatibility) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 
-        // Your web app's Firebase configuration (PASTE YOUR ACTUAL CONFIG HERE)
-        const firebaseConfig = {
-			apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678",
-			authDomain: "vote-7c98d.firebaseapp.com",
-			projectId: "vote-7c98d",
-			storageBucket: "vote-7c98d.firebasestorage.app",
-			messagingSenderId: "790876453479",
-			appId: "1:790876453479:web:a24133b7fdfb2f2c12f2c2",
-			measurementId: "G-LSEENP94Q9"
-		};
+    <!-- Your main application JavaScript -->
+    <script src="script.js"></script> 
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); // NEW: Initialize Auth service
-
-        // Firebase Firestore Poll Document Reference
-        const pollDocRef = doc(db, "polls", "poll_results");
-        // NEW: Firestore Collection Reference for tracking user votes
-        const usersVotedCollection = collection(db, "users_voted"); // New collection to store user vote status
-
-        // --- HTML Element References ---
-        // Auth elements
-        const authContainer = document.getElementById('auth-container');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn'); // Reference still needed even if hidden
-        const authError = document.getElementById('auth-error');
-        const userEmailSpan = document.getElementById('user-email');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        // Poll elements
-        const pollContainer = document.getElementById('poll-container');
-        const yesButton = document.getElementById('yesButton');
-        const noButton = document.getElementById('noButton');
-        const maybeButton = document.getElementById('maybeButton');
-        const yesCountSpan = document.getElementById('yesCount');
-        const noCountSpan = document.getElementById('noCount');
-        const maybeCountSpan = document.getElementById('maybeCount');
-        const yourVoteStatus = document.getElementById('yourVoteStatus');
-
-        let currentUser = null; // Will store the authenticated user object
-        let hasVotedCurrentUser = false; // Tracks if the current logged-in user has voted
-
-        // --- Utility Functions ---
-        function showAuthContainer() {
-            authContainer.classList.remove('hidden');
-            pollContainer.classList.add('hidden');
-            authError.textContent = ''; // Clear previous errors
-        }
-
-        function showPollContainer() {
-            authContainer.classList.add('hidden');
-            pollContainer.classList.remove('hidden');
-            disableVotingButtons(false); // Enable buttons by default when poll is shown
-        }
-
-        function disableVotingButtons(disabledState) {
-            yesButton.disabled = disabledState;
-            noButton.disabled = disabledState;
-            maybeButton.disabled = disabledState;
-        }
-
-        function displayAuthError(message) {
-            authError.textContent = message;
-        }
-
-        // --- Authentication Functions ---
-        loginBtn.addEventListener('click', async () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            displayAuthError(''); // Clear previous error
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged will handle UI update
-            } catch (error) {
-                console.error("Login failed:", error.code, error.message);
-                let errorMessage = "Login failed. Please check your credentials.";
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    errorMessage = "Invalid username or password.";
-                } else if (error.code === 'auth/invalid-email') { // Catch cases where user might enter non-email format despite placeholder
-                    errorMessage = "Please enter a valid email format for your username.";
-                }
-                displayAuthError(errorMessage);
-            }
-        });
-
-        // The signupBtn is hidden, so this listener won't be triggered by user clicks,
-        // but the function exists if you were to unhide it or call programmatically.
-        signupBtn.addEventListener('click', async () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            displayAuthError(''); // Clear previous error
-
-            if (password.length < 6) {
-                displayAuthError("Password must be at least 6 characters long.");
-                return;
-            }
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged will handle UI update
-                alert("Account created successfully! You are now logged in.");
-            } catch (error) {
-                console.error("Signup failed:", error.code, error.message);
-                let errorMessage = "Signup failed. Please try again.";
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = "This email is already in use. Try logging in.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Invalid email format for username.";
-                } else if (error.code === 'auth/operation-not-allowed') {
-                    errorMessage = "Account creation is currently disabled."; // Specific message if you disable via Firebase console
-                }
-                displayAuthError(errorMessage);
-            }
-        });
-
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                // onAuthStateChanged will handle UI update
-                alert("You have been logged out.");
-            } catch (error) {
-                console.error("Logout failed:", error);
-                alert("Failed to log out. Please try again.");
-            }
-        });
-
-        // --- Core Authentication State Listener ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // User is signed in
-                currentUser = user;
-                userEmailSpan.textContent = user.email; // Display email as username
-                showPollContainer();
-                await checkUserVoteStatus(user.uid); // Check if this user has voted
-                await fetchPollCounts(); // Fetch global counts
-
-                // Reset inputs for security
-                emailInput.value = '';
-                passwordInput.value = '';
-
-            } else {
-                // User is signed out
-                currentUser = null;
-                hasVotedCurrentUser = false;
-                showAuthContainer(); // Show login/signup form
-                yourVoteStatus.textContent = 'Not Voted'; // Reset vote status display
-                disableVotingButtons(true); // Disable poll buttons when not logged in
-            }
-        });
-
-        // --- Vote Tracking Functions ---
-
-        // Check if the current user has already voted
-        async function checkUserVoteStatus(uid) {
-            try {
-                const userVoteDocRef = doc(db, "users_voted", uid);
-                const docSnap = await getDoc(userVoteDocRef);
-                if (docSnap.exists()) {
-                    hasVotedCurrentUser = true;
-                    yourVoteStatus.textContent = docSnap.data().voteType; // Display what they voted
-                    disableVotingButtons(true); // Disable if already voted
-                } else {
-                    hasVotedCurrentUser = false;
-                    yourVoteStatus.textContent = 'Not Voted';
-                    disableVotingButtons(false); // Enable if not voted
-                }
-            } catch (e) {
-                console.error("Error checking user vote status:", e);
-                // Assume not voted if error occurs, to allow retrying
-                hasVotedCurrentUser = false;
-                yourVoteStatus.textContent = 'Error checking status';
-                disableVotingButtons(false); // Ensure buttons are enabled to allow retry or first vote
-            }
-        }
-
-
-        // Function to fetch and update global poll counts
-        async function fetchPollCounts() {
-            try {
-                const docSnap = await getDoc(pollDocRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    yesCountSpan.textContent = data.yes || 0;
-                    noCountSpan.textContent = data.no || 0;
-                    maybeCountSpan.textContent = data.maybe || 0;
-                } else {
-                    // Document doesn't exist, create it with initial values
-                    await setDoc(pollDocRef, { yes: 0, no: 0, maybe: 0 });
-                    yesCountSpan.textContent = 0;
-                    noCountSpan.textContent = 0;
-                    maybeCountSpan.textContent = 0;
-                }
-            } catch (e) {
-                console.error("Error fetching poll counts:", e);
-                // Optionally display an error message to the user
-            }
-        }
-
-        // Function to handle a vote
-        async function handleVote(voteType) {
-            if (!currentUser) {
-                alert("You must be logged in to vote!");
-                return;
-            }
-            if (hasVotedCurrentUser) {
-                alert("You have already voted!");
-                return;
-            }
-
-            disableVotingButtons(true); // Client-side disable immediately
-
-            try {
-                // First, check if the user has voted (redundant with hasVotedCurrentUser, but a final server-side check)
-                const userVoteDocRef = doc(db, "users_voted", currentUser.uid);
-                const userVoteSnap = await getDoc(userVoteDocRef);
-                if (userVoteSnap.exists()) {
-                    alert("It looks like you've already voted! Please refresh if this is an error.");
-                    hasVotedCurrentUser = true;
-                    yourVoteStatus.textContent = userVoteSnap.data().voteType;
-                    return;
-                }
-
-                // Perform the vote increment
-                await updateDoc(pollDocRef, {
-                    [voteType]: increment(1)
-                });
-
-                // Mark this user as having voted in their own document
-                await setDoc(userVoteDocRef, {
-                    voteType: voteType,
-                    timestamp: new Date()
-                });
-
-                hasVotedCurrentUser = true;
-                yourVoteStatus.textContent = voteType === 'yes' ? 'Yes' : (voteType === 'no' ? 'No' : 'Maybe');
-
-                await fetchPollCounts(); // Fetch updated global counts
-                alert("Your vote has been recorded!");
-
-            } catch (e) {
-                console.error("Error voting:", e);
-                alert("Failed to record your vote. Please try again. Error: " + e.message);
-                // Re-enable buttons if error occurs and user hasn't voted
-                if (!hasVotedCurrentUser) {
-                    disableVotingButtons(false);
-                }
-            }
-        }
-
-        // Event Listeners for poll buttons
-        yesButton.addEventListener('click', () => handleVote('yes'));
-        noButton.addEventListener('click', () => handleVote('no'));
-        maybeButton.addEventListener('click', () => handleVote('maybe'));
-
-    </script>
 </body>
 </html>

@@ -1,0 +1,207 @@
+body {
+    font-family: 'Inter', sans-serif; /* Using Inter for modern look */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f2f5; /* Light grey background */
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.app-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 450px; /* Max width for readability on larger screens */
+    box-sizing: border-box;
+}
+
+.app-page {
+    padding: 10px 0;
+}
+
+.hidden {
+    display: none; /* Crucial for hiding pages */
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+    text-align: left;
+}
+
+input[type="email"],
+input[type="password"] {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.05em;
+    font-weight: 600;
+    margin: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.main-button {
+    background-color: #007bff; /* Primary action blue */
+    color: white;
+}
+
+.main-button:hover {
+    background-color: #0056b3;
+}
+
+.secondary-button {
+    background-color: #6c757d; /* Gray for secondary actions */
+    color: white;
+}
+
+.secondary-button:hover {
+    background-color: #5a6268;
+}
+
+.danger-button {
+    background-color: #dc3545; /* Red for destructive actions like logout */
+    color: white;
+}
+
+.danger-button:hover {
+    background-color: #c82333;
+}
+
+.poll-button {
+    padding: 15px 30px; /* Larger buttons for poll options */
+    font-size: 1.2em;
+    margin: 10px;
+}
+
+.yes-button {
+    background-color: #28a745; /* Green for Yes */
+    color: white;
+}
+
+.yes-button:hover {
+    background-color: #218838;
+}
+
+.no-button {
+    background-color: #f44336; /* Red for No */
+    color: white;
+}
+
+.no-button:hover {
+    background-color: #d32f2f;
+}
+
+.maybe-button {
+    background-color: #ffc107; /* Orange for Maybe */
+    color: #333;
+}
+
+.maybe-button:hover {
+    background-color: #e0a800;
+}
+
+.user-status {
+    margin-bottom: 20px;
+    color: #444;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.results-container {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    font-size: 1.1em;
+    color: #555;
+}
+
+.results-container p {
+    margin: 8px 0;
+}
+
+.results-container span {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.small-text {
+    font-size: 0.9em;
+    color: #777;
+    margin-top: 15px;
+}
+
+.message-box {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: none; /* Hidden by default */
+}
+
+.message-box.error {
+    background-color: #ffe0e0;
+    color: #d32f2f;
+    border: 1px solid #d32f2f;
+}
+
+.message-box.success {
+    background-color: #e0ffe0;
+    color: #218838;
+    border: 1px solid #218838;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .app-container {
+        padding: 20px;
+        margin: 10px;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+
+    .poll-button {
+        padding: 12px 25px;
+        font-size: 1.1em;
+    }
+}
