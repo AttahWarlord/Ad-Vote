@@ -41,7 +41,7 @@
         </div>
 
         <!-- ============================================== -->
-        <!--              3. Vote Poll Page                 -->
+        <!--               3. Vote Poll Page                -->
         <!-- ============================================== -->
         <div id="pollPage" class="app-page hidden">
             <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
@@ -60,24 +60,38 @@
             <p id="voteMessage" class="message-box"></p>
             <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
 
-            <!-- ****** CORRECT LOCATION FOR ADMIN CONTROLS ****** -->
+            <!-- NEW: All Users Vote Status Section (visible to ALL logged-in users) -->
+            <div id="allUsersVoteStatus" class="all-votes-section">
+                <h4>All User Votes:</h4>
+                <ul id="usersVoteList">
+                    <li>Loading votes...</li>
+                </ul>
+            </div>
+
+            <!-- Admin Controls (now correctly nested inside pollPage and has 'admin-section' class) -->
             <div id="adminControlsDiv" class="admin-section hidden">
                 <h3>Admin Controls</h3>
+                <div class="admin-message" id="adminMessage"></div> <!-- adminMessage should also be here -->
+
                 <div class="input-group">
-                    <label for="pollQuestionInput">Update Poll Question:</label>
+                    <label for="pollQuestionInput">Update Poll Question (Clears all votes!):</label>
                     <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
-                    <button id="updateQuestionButton">Update Question</button>
+                    <button id="updateQuestionButton" class="main-button">Update Question</button>
                 </div>
+
+                <!-- Admin's list of users with clear vote buttons -->
+                <div id="userListForAdmin" class="user-list-container">
+                    <!-- User list populated by JS -->
+                </div>
+                 <!-- The direct UID clear is removed as per your request for easier clearing via list -->
+                 <!-- If you still want it, uncomment this:
                 <div class="input-group">
                     <label for="userToClearVoteInput">Clear User's Vote (by UID):</label>
                     <input type="text" id="userToClearVoteInput" placeholder="Enter user UID to clear vote">
-                    <button id="clearVoteButton">Clear Vote</button>
+                    <button id="clearVoteButton" class="danger-button">Clear Vote</button>
                 </div>
-                <div id="adminMessage" class="message-box"></div>
-                <!-- NEW: Area for displaying user list for admin -->
-                <div id="userListForAdmin" class="user-list-container"></div>
+                 -->
             </div>
-            <!-- ********************************************** -->
         </div>
 
         <!-- ============================================== -->
@@ -94,9 +108,12 @@
     <!-- ============================================== -->
     <!--            Firebase SDK & Your Scripts         -->
     <!-- ============================================== -->
+    <!-- Firebase SDK (using compat versions for broader compatibility) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
+    <!-- Your main application JavaScript -->
     <script src="script.js"></script>
 
 </body>
