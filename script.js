@@ -28,6 +28,9 @@ const usersCollection = db.collection("users");
 // ==============================================
 //           HTML Element References
 // ==============================================
+// New Page elements
+const backToMenuFromNewPageButton = document.getElementById('backToMenuFromNewPage');
+
 // Page containers
 const loginPage = document.getElementById('loginPage');
 const menuPage = document.getElementById('menuPage');
