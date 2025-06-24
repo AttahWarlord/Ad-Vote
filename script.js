@@ -36,7 +36,6 @@ const authForm = document.getElementById('authForm');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const loginButton = document.getElementById('loginButton');
-// const registerButton = document.getElementById('registerButton'); // THIS LINE IS REMOVED
 const authMessage = document.getElementById('authMessage');
 
 // Menu elements
