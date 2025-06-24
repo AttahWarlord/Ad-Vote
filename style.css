@@ -1,322 +1,119 @@
-body {
-    font-family: 'Inter', sans-serif; /* Using Inter for modern look */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #f0f2f5; /* Light grey background */
-    margin: 0;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.app-container {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 100%;
-    max-width: 450px; /* Max width for readability on larger screens */
-    box-sizing: border-box;
-}
-
-.app-page {
-    padding: 10px 0;
-}
-
-.hidden {
-    display: none; /* Crucial for hiding pages */
-}
-
-h2 {
-    color: #333;
-    margin-bottom: 25px;
-    font-size: 1.8em;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #555;
+/* NEW: All Users Vote Status Section */
+#allUsersVoteStatus {
+    border-top: 2px dashed #ccc; /* Separator line */
+    padding-top: 25px;
+    margin-top: 30px;
     text-align: left;
 }
 
-input[type="email"],
-input[type="password"],
-input[type="text"] { /* Added input type text for admin fields */
-    width: calc(100% - 20px);
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 1em;
-}
-
-button {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.05em;
-    font-weight: 600;
-    margin: 5px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-button:hover {
-    transform: translateY(-2px);
-}
-
-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.7;
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-.main-button {
-    background-color: #007bff; /* Primary action blue */
-    color: white;
-}
-
-.main-button:hover {
-    background-color: #0056b3;
-}
-
-.secondary-button {
-    background-color: #6c757d; /* Gray for secondary actions */
-    color: white;
-}
-
-.secondary-button:hover {
-    background-color: #5a6268;
-}
-
-.danger-button {
-    background-color: #dc3545; /* Red for destructive actions like logout */
-    color: white;
-}
-
-.danger-button:hover {
-    background-color: #c82333;
-}
-
-.poll-button {
-    padding: 15px 30px; /* Larger buttons for poll options */
-    font-size: 1.2em;
-    margin: 10px;
-}
-
-.yes-button {
-    background-color: #28a745; /* Green for Yes */
-    color: white;
-}
-
-.yes-button:hover {
-    background-color: #218838;
-}
-
-.no-button {
-    background-color: #f44336; /* Red for No */
-    color: white;
-}
-
-.no-button:hover {
-    background-color: #d32f2f;
-}
-
-.maybe-button {
-    background-color: #ffc107; /* Orange for Maybe */
-    color: #333;
-}
-
-.maybe-button:hover {
-    background-color: #e0a800;
-}
-
-.user-status {
-    margin-bottom: 20px;
-    color: #444;
-    font-size: 1.1em;
-    font-weight: 500;
-}
-
-.results-container {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-    font-size: 1.1em;
-    color: #555;
-}
-
-.results-container p {
-    margin: 8px 0;
-}
-
-.results-container span {
-    font-weight: bold;
-    color: #007bff;
-}
-
-.small-text {
-    font-size: 0.9em;
-    color: #777;
-    margin-top: 15px;
-}
-
-.message-box {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    display: none; /* Hidden by default */
-}
-
-.message-box.error {
-    background-color: #ffe0e0;
-    color: #d32f2f;
-    border: 1px solid #d32f2f;
-}
-
-.message-box.success {
-    background-color: #e0ffe0;
-    color: #218838;
-    border: 1px solid #218838;
-}
-
-/* ============================================== */
-/* NEW ADMIN STYLES                   */
-/* ============================================== */
-
-.admin-section {
-    margin-top: 40px; /* Space above admin controls */
-    padding-top: 30px;
-    border-top: 2px dashed #ddd; /* Visual separator */
-    text-align: left; /* Align text within admin section to left */
-}
-
-.admin-section h3 {
+#allUsersVoteStatus h3 {
     text-align: center;
-    color: #007bff;
+    color: #28a745; /* Green for this section */
     margin-bottom: 20px;
-    font-size: 1.5em;
 }
 
-.admin-section .input-group {
-    margin-bottom: 15px;
-}
-
-.admin-section .input-group label {
-    margin-bottom: 5px;
-    font-size: 0.95em;
-    color: #666;
-}
-
-.admin-section input[type="text"] {
-    margin-bottom: 10px; /* Adjust margin for admin inputs */
-}
-
-.admin-section button {
-    width: auto;
-    display: inline-block;
-    margin-right: 5px;
-    padding: 8px 15px;
-    font-size: 0.9em;
-}
-
-.user-list-container {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
-
-#adminUserList {
+#usersVoteList {
     list-style: none;
     padding: 0;
+    margin-top: 15px;
+    max-height: 300px; /* Limit height and make scrollable */
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #fff;
 }
 
-.user-list-item {
-    margin-bottom: 8px;
-    padding: 5px 0;
-    border-bottom: 1px dashed #eee;
+#usersVoteList li {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
 }
 
-.user-list-item:last-child {
+#usersVoteList li:last-child {
     border-bottom: none;
 }
 
-.user-uid {
-    font-family: monospace; /* Makes UIDs easier to read */
-    font-size: 0.9em;
-    color: #555;
-    word-break: break-all; /* Break long UIDs */
-    flex-grow: 1; /* Allow it to take available space */
-    margin-right: 10px; /* Space between UID and button */
+#usersVoteList li:nth-child(even) {
+    background-color: #fbfbfb;
 }
 
-.copy-uid-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
+.vote-status {
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+/* Specific vote status colors for .vote-status */
+.vote-status.yes {
+    background-color: #d4edda;
+    color: #28a745;
+}
+
+.vote-status.no {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+
+.vote-status.maybe {
+    background-color: #fff3cd;
+    color: #ffc107;
+}
+
+.vote-status.not-voted {
+    background-color: #e2e6ea;
+    color: #6c757d;
+}
+
+/* Admin User List Specific Styles (updated to include clear vote button styling) */
+#userListForAdmin {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    max-height: 250px; /* Limit height and make scrollable */
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+#userListForAdmin li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+#userListForAdmin li:last-child {
+    border-bottom: none;
+}
+
+#userListForAdmin li:nth-child(even) {
+    background-color: #fbfbfb;
+}
+
+.user-list-item strong {
+    color: #333;
+}
+
+.user-list-item .user-uid {
     font-size: 0.8em;
-    margin-left: auto; /* Push to the right */
-    flex-shrink: 0; /* Don't shrink when space is tight */
-    transition: background-color 0.2s ease;
+    color: #777;
+    word-break: break-all; /* Ensure long UIDs wrap */
+}
+
+/* Style for the "Clear Vote" button in admin list - reusing copy-uid-button for now, can be specific if needed */
+.copy-uid-button { /* Reusing for "Clear Vote" button for a consistent look */
+    padding: 6px 12px;
+    font-size: 0.85em;
+    margin-left: 10px;
+    background-color: #17a2b8; /* Info color */
+    color: white;
 }
 
 .copy-uid-button:hover {
-    background-color: #0056b3;
-}
-
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .app-container {
-        padding: 20px;
-        margin: 10px;
-    }
-
-    button {
-        padding: 10px 20px;
-        font-size: 1em;
-    }
-
-    .poll-button {
-        padding: 12px 25px;
-        font-size: 1.1em;
-    }
-
-    .admin-section button {
-        width: 100%; /* Full width buttons on small screens */
-        margin: 5px 0;
-    }
-
-    .user-list-item {
-        flex-direction: column; /* Stack username/UID and button */
-        align-items: flex-start;
-    }
-
-    .user-uid {
-        margin-right: 0;
-        margin-bottom: 5px;
-    }
-
-    .copy-uid-button {
-        margin-left: 0;
-        width: 100%;
-    }
+    background-color: #138496;
 }
