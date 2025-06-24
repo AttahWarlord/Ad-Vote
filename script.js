@@ -3,13 +3,13 @@
 // ==============================================
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAc7uHnM5lxnQ9l1M0z_iUarScUtJZI678",
-    authDomain: "vote-7c98d.firebaseapp.com",
-    projectId: "vote-7c98d",
-    storageBucket: "vote-7c98d.firebasestorage.app",
-    messagingSenderId: "790876453479",
-    appId: "1:790876453479:web:a24133b7fdfb2f2c12f2c2",
-    measurementId: "G-LSEENP94Q9"
+    apiKey: "YOUR_API_KEY", // Replace with your actual API Key
+    authDomain: "YOUR_AUTH_DOMAIN", // Replace with your actual Auth Domain
+    projectId: "YOUR_PROJECT_ID", // Replace with your actual Project ID
+    storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your actual Storage Bucket
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Replace with your actual Messaging Sender ID
+    appId: "YOUR_APP_ID", // Replace with your actual App ID
+    measurementId: "YOUR_MEASUREMENT_ID" // Replace with your actual Measurement ID
 };
 
 // Initialize Firebase services
@@ -31,6 +31,9 @@ const usersCollection = db.collection("users");
 let currentUser = null;
 let hasVotedCurrentUser = false;
 let isAdmin = false;
+let currentUserCurrency = 0; // NEW: User's current currency
+let clickCount = 0; // NEW: Clicks for the current session/game
+const coinsPerClick = 1; // NEW: How many coins per click
 
 
 // ==============================================
@@ -38,15 +41,15 @@ let isAdmin = false;
 // ==============================================
 
 /**
- * Shows a specific page by its ID and hides all other app pages.
- * @param {string} pageId - The ID of the page to show.
+ * Shows a specific main page by its ID and hides all other app pages.
+ * @param {string} pageId - The ID of the main page to show.
  */
 function showPage(pageId) {
-    // Hide all pages first
-    [loginPage, menuPage, pollPage, newPage].forEach(page => {
+    // Hide all main pages first
+    [loginPage, menuPage, pollPage, currencyPage].forEach(page => { // Changed 'newPage' to 'currencyPage'
         if (page) page.classList.add('hidden');
     });
-    // Show the target page
+    // Show the target main page
     const targetPage = document.getElementById(pageId);
     if (targetPage) targetPage.classList.remove('hidden');
 
@@ -61,7 +64,30 @@ function showPage(pageId) {
         fetchPollCounts(); // Global poll counts and question
         displayAllUsersVoteStatus(); // NEW: All users' vote status
     }
+
+    // NEW: If navigating to currencyPage, ensure relevant data is updated
+    if (pageId === 'currencyPage' && currentUser) {
+        if (userCurrencyBalance) userCurrencyBalance.textContent = currentUserCurrency; // Update balance display
+        // Default to showing the clicker page within the currency hub
+        showCurrencySubPage('clickerGamePage');
+    }
 }
+
+/**
+ * NEW: Shows a specific sub-page within the Currency Hub and hides others.
+ * @param {string} subPageId - The ID of the sub-page to show within currencySubPagesContainer.
+ */
+function showCurrencySubPage(subPageId) {
+    // Hide all currency sub-pages first
+    // Note: If you add more sub-pages, add their IDs here
+    [clickerGamePage].forEach(page => {
+        if (page) page.classList.add('hidden');
+    });
+    // Show the target sub-page
+    const targetSubPage = document.getElementById(subPageId);
+    if (targetSubPage) targetSubPage.classList.remove('hidden');
+}
+
 
 /**
  * Displays a message in a designated message box.
@@ -96,6 +122,7 @@ function setPollButtonsDisabled(disabledState) {
     if (voteMaybeButton) voteMaybeButton.disabled = disabledState;
 }
 
+
 // ==============================================
 //           Authentication Logic
 // ==============================================
@@ -109,6 +136,7 @@ auth.onAuthStateChanged(async (user) => {
         currentUser = user;
         let displayedUsername = user.email;
         isAdmin = false; // Reset isAdmin on every login check
+        currentUserCurrency = 0; // NEW: Reset currency on login check
 
         const userProfileRef = usersCollection.doc(user.uid);
 
@@ -122,14 +150,18 @@ auth.onAuthStateChanged(async (user) => {
                 if (userData.isAdmin === true) {
                     isAdmin = true;
                 }
+                // NEW: Load user's currency
+                currentUserCurrency = userData.currency || 0;
             } else {
                 console.log("User profile document does not exist in Firestore for UID:", user.uid);
                 // Optionally, create a basic user profile if it doesn't exist (e.g., for new registrations)
                 await userProfileRef.set({
                     username: user.email.split('@')[0], // Use part of email as default username
                     email: user.email,
-                    isAdmin: false
+                    isAdmin: false,
+                    currency: 0 // NEW: Initialize currency for new users
                 }, { merge: true }); // Use merge to avoid overwriting existing fields if they exist
+                currentUserCurrency = 0; // For new users, ensure currency is 0
             }
         } catch (error) {
             console.error("Error fetching or creating user profile:", error);
@@ -138,6 +170,7 @@ auth.onAuthStateChanged(async (user) => {
 
         if (loggedInUsernameSpan) loggedInUsernameSpan.textContent = displayedUsername;
         if (pollUserEmailSpan) pollUserEmailSpan.textContent = displayedUsername;
+        if (userCurrencyBalance) userCurrencyBalance.textContent = currentUserCurrency; // NEW: Update currency display
 
         // Admin UI Visibility and user list loading
         if (isAdmin) {
@@ -165,6 +198,9 @@ auth.onAuthStateChanged(async (user) => {
         if (yourVoteStatusSpan) yourVoteStatusSpan.textContent = 'Not Voted';
         setPollButtonsDisabled(true);
         isAdmin = false;
+        currentUserCurrency = 0; // NEW: Reset currency on logout
+        if (userCurrencyBalance) userCurrencyBalance.textContent = 0; // NEW: Reset currency display
+
         if (adminControlsDiv) adminControlsDiv.classList.add('hidden');
         if (userListForAdmin) userListForAdmin.innerHTML = ''; // Clear admin user list on logout
         if (usersVoteList) usersVoteList.innerHTML = '<li>Please log in to see votes.</li>'; // Clear all user votes on logout
@@ -532,30 +568,69 @@ async function loadUserListForAdmin() {
 
 
 // ==============================================
+//           NEW: Currency Logic
+// ==============================================
+
+async function handleCoinClick() {
+    if (!currentUser) {
+        // This shouldn't happen if button is only active when logged in
+        console.error("User not logged in to click!");
+        return;
+    }
+
+    clickCount++;
+    if (clickCountDisplay) clickCountDisplay.textContent = clickCount;
+
+    currentUserCurrency += coinsPerClick;
+    if (userCurrencyBalance) userCurrencyBalance.textContent = currentUserCurrency;
+
+    try {
+        // Update user's currency in Firestore
+        await usersCollection.doc(currentUser.uid).update({
+            currency: currentUserCurrency
+        });
+        // No success message needed for every click, it would be too spammy.
+    } catch (error) {
+        console.error("Error updating currency:", error);
+        // Maybe show an error message if the update failed significantly
+    }
+}
+
+
+// ==============================================
 //           Initial App Load & Setup (and Event Listeners)
 // ==============================================
 // Declare global HTML element references. They might be null initially
 // but will be correctly set when DOMContentLoaded fires.
-let backToMenuFromNewPageButton;
-let loginPage, menuPage, pollPage, newPage;
+let backToMenuFromNewPageButton; // This will be renamed
+let loginPage, menuPage, pollPage, currencyPage; // Changed 'newPage' to 'currencyPage'
 let authForm, emailInput, passwordInput, loginButton, authMessage;
-let loggedInUsernameSpan, goToPollButton, goToNewPageButton, logoutButton;
+let loggedInUsernameSpan, goToPollButton, goToCurrencyPageButton, logoutButton; // Changed 'goToNewPageButton'
 let pollUserEmailSpan, voteYesButton, voteNoButton, voteMaybeButton;
 let yesCountSpan, noCountSpan, maybeCountSpan, yourVoteStatusSpan, voteMessage;
-let backToMenuFromPollButton;
+let backToMenuFromPollButton, backToMenuFromCurrencyButton; // New currency back button
 let pollQuestionDisplay;
 let allUsersVoteStatus, usersVoteList;
 let adminControlsDiv, pollQuestionInput, updateQuestionButton, adminMessage;
-let userListForAdmin; // Removed userToClearVoteInput and clearVoteButton
+let userListForAdmin;
+
+// NEW Currency Elements
+let userCurrencyBalance;
+let goToClickerButton;
+let currencySubPagesContainer;
+let clickerGamePage;
+let clickCountDisplay;
+let earningPerClick;
+let clickButton;
+let backToCurrencyHubButton;
 
 
 document.addEventListener('DOMContentLoaded', () => {
     // Assign HTML element references here, guaranteeing they are in the DOM
-    backToMenuFromNewPageButton = document.getElementById('backToMenuFromNewPage');
     loginPage = document.getElementById('loginPage');
     menuPage = document.getElementById('menuPage');
     pollPage = document.getElementById('pollPage');
-    newPage = document.getElementById('newPage');
+    currencyPage = document.getElementById('currencyPage'); // Changed 'newPage' to 'currencyPage'
 
     authForm = document.getElementById('authForm');
     emailInput = document.getElementById('email');
@@ -565,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loggedInUsernameSpan = document.getElementById('loggedInUsername');
     goToPollButton = document.getElementById('goToPollButton');
-    goToNewPageButton = document.getElementById('goToNewPageButton');
+    goToCurrencyPageButton = document.getElementById('goToCurrencyPageButton'); // Changed 'goToNewPageButton'
     logoutButton = document.getElementById('logoutButton');
 
     pollUserEmailSpan = document.getElementById('pollUserEmail');
@@ -588,6 +663,17 @@ document.addEventListener('DOMContentLoaded', () => {
     updateQuestionButton = document.getElementById('updateQuestionButton');
     adminMessage = document.getElementById('adminMessage');
     userListForAdmin = document.getElementById('userListForAdmin');
+
+    // NEW Currency Elements Assignment
+    userCurrencyBalance = document.getElementById('userCurrencyBalance');
+    goToClickerButton = document.getElementById('goToClickerButton');
+    currencySubPagesContainer = document.getElementById('currencySubPagesContainer');
+    clickerGamePage = document.getElementById('clickerGamePage');
+    clickCountDisplay = document.getElementById('clickCountDisplay');
+    earningPerClick = document.getElementById('earningPerClick');
+    clickButton = document.getElementById('clickButton');
+    backToCurrencyHubButton = document.getElementById('backToCurrencyHubButton');
+    backToMenuFromCurrencyButton = document.getElementById('backToMenuFromCurrency'); // Corrected ID
 
     // ==============================================
     //           Event Listeners (Now inside DOMContentLoaded)
@@ -642,9 +728,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Navigation button event listeners
     if (goToPollButton) goToPollButton.addEventListener('click', () => showPage('pollPage'));
-    if (goToNewPageButton) goToNewPageButton.addEventListener('click', () => showPage('newPage'));
+    // NEW: Navigation to Currency Page
+    if (goToCurrencyPageButton) goToCurrencyPageButton.addEventListener('click', () => showPage('currencyPage'));
     if (backToMenuFromPollButton) backToMenuFromPollButton.addEventListener('click', () => showPage('menuPage'));
-    if (backToMenuFromNewPageButton) backToMenuFromNewPageButton.addEventListener('click', () => showPage('menuPage'));
+    // NEW: Navigation back from Currency Page
+    if (backToMenuFromCurrencyButton) backToMenuFromCurrencyButton.addEventListener('click', () => showPage('menuPage'));
 
     // Admin control event listeners
     if (updateQuestionButton) {
@@ -663,6 +751,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await resetPollVotesAndQuestion(newQuestion);
         });
     }
+
+    // NEW: Clicker game event listeners
+    if (clickButton) clickButton.addEventListener('click', handleCoinClick);
+    if (backToCurrencyHubButton) backToCurrencyHubButton.addEventListener('click', () => showCurrencySubPage('clickerGamePage')); // For now, only one sub-page, so back to it
 
     // Initial page load for the app based on auth state
     // This part stays within DOMContentLoaded as it sets up the initial view.
