@@ -38,6 +38,7 @@ const pollPage = document.getElementById('pollPage');
 const currencyPage = document.getElementById('currencyPage'); // Renamed from newPage
 
 // Currency Sub-pages
+const currencyHubMainContent = document.getElementById('currencyHubMainContent'); // NEW REFERENCE
 const currencySubPagesContainer = document.getElementById('currencySubPagesContainer');
 const clickerGamePage = document.getElementById('clickerGamePage');
 
@@ -107,10 +108,20 @@ function showPage(pageToShow) {
 
 /**
  * Shows a specific currency sub-page and hides others within the currencyPage.
- * @param {HTMLElement} subPageToShow - The DOM element of the currency sub-page to display.
+ * Also manages the visibility of the main currency hub content.
+ * @param {HTMLElement} subPageToShow - The DOM element of the currency sub-page to display, or null to show main hub.
  */
 function showCurrencySubPage(subPageToShow) {
     const subPages = [clickerGamePage /* Add other currency sub-pages here later */];
+
+    if (subPageToShow) {
+        // If a sub-page is being shown, hide the main currency hub content
+        currencyHubMainContent.classList.add('hidden');
+    } else {
+        // If no sub-page is being shown (i.e., back to main hub), show the main currency hub content
+        currencyHubMainContent.classList.remove('hidden');
+    }
+
     subPages.forEach(page => {
         if (page === subPageToShow) {
             page.classList.remove('hidden');
