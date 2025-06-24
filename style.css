@@ -44,7 +44,8 @@ label {
 }
 
 input[type="email"],
-input[type="password"] {
+input[type="password"],
+input[type="text"] { /* Added input type text for admin fields */
     width: calc(100% - 20px);
     padding: 12px;
     margin-bottom: 15px;
@@ -188,6 +189,100 @@ button:disabled {
     border: 1px solid #218838;
 }
 
+/* ============================================== */
+/* NEW ADMIN STYLES                   */
+/* ============================================== */
+
+.admin-section {
+    margin-top: 40px; /* Space above admin controls */
+    padding-top: 30px;
+    border-top: 2px dashed #ddd; /* Visual separator */
+    text-align: left; /* Align text within admin section to left */
+}
+
+.admin-section h3 {
+    text-align: center;
+    color: #007bff;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.admin-section .input-group {
+    margin-bottom: 15px;
+}
+
+.admin-section .input-group label {
+    margin-bottom: 5px;
+    font-size: 0.95em;
+    color: #666;
+}
+
+.admin-section input[type="text"] {
+    margin-bottom: 10px; /* Adjust margin for admin inputs */
+}
+
+.admin-section button {
+    width: auto;
+    display: inline-block;
+    margin-right: 5px;
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+.user-list-container {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+#adminUserList {
+    list-style: none;
+    padding: 0;
+}
+
+.user-list-item {
+    margin-bottom: 8px;
+    padding: 5px 0;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.user-list-item:last-child {
+    border-bottom: none;
+}
+
+.user-uid {
+    font-family: monospace; /* Makes UIDs easier to read */
+    font-size: 0.9em;
+    color: #555;
+    word-break: break-all; /* Break long UIDs */
+    flex-grow: 1; /* Allow it to take available space */
+    margin-right: 10px; /* Space between UID and button */
+}
+
+.copy-uid-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-left: auto; /* Push to the right */
+    flex-shrink: 0; /* Don't shrink when space is tight */
+    transition: background-color 0.2s ease;
+}
+
+.copy-uid-button:hover {
+    background-color: #0056b3;
+}
+
+
 /* Responsive adjustments */
 @media (max-width: 600px) {
     .app-container {
@@ -203,5 +298,25 @@ button:disabled {
     .poll-button {
         padding: 12px 25px;
         font-size: 1.1em;
+    }
+
+    .admin-section button {
+        width: 100%; /* Full width buttons on small screens */
+        margin: 5px 0;
+    }
+
+    .user-list-item {
+        flex-direction: column; /* Stack username/UID and button */
+        align-items: flex-start;
+    }
+
+    .user-uid {
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+
+    .copy-uid-button {
+        margin-left: 0;
+        width: 100%;
     }
 }
