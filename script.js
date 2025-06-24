@@ -26,58 +26,8 @@ const usersCollection = db.collection("users");
 
 
 // ==============================================
-//           HTML Element References
+//           Global State Variables
 // ==============================================
-// New Page elements
-const backToMenuFromNewPageButton = document.getElementById('backToMenuFromNewPage');
-
-// Page containers
-const loginPage = document.getElementById('loginPage');
-const menuPage = document.getElementById('menuPage');
-const pollPage = document.getElementById('pollPage');
-const newPage = document.getElementById('newPage');
-
-// Auth elements
-const authForm = document.getElementById('authForm');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const loginButton = document.getElementById('loginButton');
-const authMessage = document.getElementById('authMessage');
-
-// Menu elements
-const loggedInUsernameSpan = document.getElementById('loggedInUsername');
-const goToPollButton = document.getElementById('goToPollButton');
-const goToNewPageButton = document.getElementById('goToNewPageButton');
-const logoutButton = document.getElementById('logoutButton');
-
-// Poll elements
-const pollUserEmailSpan = document.getElementById('pollUserEmail');
-const voteYesButton = document.getElementById('voteYes');
-const voteNoButton = document.getElementById('voteNo');
-const voteMaybeButton = document.getElementById('voteMaybe');
-const yesCountSpan = document.getElementById('yesCount');
-const noCountSpan = document.getElementById('noCount');
-const maybeCountSpan = document.getElementById('maybeCount');
-const yourVoteStatusSpan = document.getElementById('yourVoteStatus');
-const voteMessage = document.getElementById('voteMessage');
-const backToMenuFromPollButton = document.getElementById('backToMenuFromPoll');
-const pollQuestionDisplay = document.getElementById('pollQuestionDisplay');
-
-// NEW: All Users Vote Status Elements
-const allUsersVoteStatus = document.getElementById('allUsersVoteStatus');
-const usersVoteList = document.getElementById('usersVoteList'); // The <ul> inside allUsersVoteStatus
-
-// Admin elements
-const adminControlsDiv = document.getElementById('adminControlsDiv');
-const pollQuestionInput = document.getElementById('pollQuestionInput');
-const updateQuestionButton = document.getElementById('updateQuestionButton');
-const userToClearVoteInput = document.getElementById('userToClearVoteInput'); // Still present for direct UID input if needed
-const clearVoteButton = document.getElementById('clearVoteButton'); // Still present for direct UID input if needed
-const adminMessage = document.getElementById('adminMessage');
-const userListForAdmin = document.getElementById('userListForAdmin'); // For displaying admin's list of users
-
-
-// Global state variables
 let currentUser = null;
 let hasVotedCurrentUser = false;
 let isAdmin = false;
@@ -120,6 +70,10 @@ function showPage(pageId) {
  * @param {'success'|'error'|''} type - The type of message ('success', 'error', or empty for clear).
  */
 function displayMessage(element, message, type) {
+    if (!element) { // Added check in case element is null (e.g., adminMessage if not admin and page loads)
+        console.warn("Attempted to display message to a null element:", message);
+        return;
+    }
     element.textContent = message;
     element.className = 'message-box'; // Reset classes
     if (message) {
@@ -137,55 +91,14 @@ function displayMessage(element, message, type) {
  * @param {boolean} disabledState - True to disable, false to enable.
  */
 function setPollButtonsDisabled(disabledState) {
-    voteYesButton.disabled = disabledState;
-    voteNoButton.disabled = disabledState;
-    voteMaybeButton.disabled = disabledState;
+    if (voteYesButton) voteYesButton.disabled = disabledState;
+    if (voteNoButton) voteNoButton.disabled = disabledState;
+    if (voteMaybeButton) voteMaybeButton.disabled = disabledState;
 }
 
 // ==============================================
 //           Authentication Logic
 // ==============================================
-
-/**
- * Handles user login.
- */
-authForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    displayMessage(authMessage, '', ''); // Clear previous messages
-
-    loginButton.disabled = true;
-
-    try {
-        await auth.signInWithEmailAndPassword(email, password);
-        displayMessage(authMessage, 'Login successful!', 'success');
-    } catch (error) {
-        console.error("Login failed:", error.code, error.message);
-        let errorMessage = "Login failed. Please check your credentials.";
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-            errorMessage = "Invalid email or password.";
-        } else if (error.code === 'auth/invalid-email') {
-            errorMessage = "Please enter a valid email address.";
-        }
-        displayMessage(authMessage, errorMessage, 'error');
-    } finally {
-        loginButton.disabled = false;
-    }
-});
-
-/**
- * Handles user logout.
- */
-logoutButton.addEventListener('click', async () => {
-    try {
-        await auth.signOut();
-        displayMessage(authMessage, 'You have been logged out.', 'success');
-    } catch (error) {
-        console.error("Logout failed:", error.message);
-        displayMessage(authMessage, "Failed to log out. Please try again.", 'error');
-    }
-});
 
 /**
  * Listens for Firebase Authentication state changes. This is the main router for pages.
@@ -223,20 +136,20 @@ auth.onAuthStateChanged(async (user) => {
             displayedUsername = user.email + " (Error fetching username)";
         }
 
-        loggedInUsernameSpan.textContent = displayedUsername;
-        pollUserEmailSpan.textContent = displayedUsername;
+        if (loggedInUsernameSpan) loggedInUsernameSpan.textContent = displayedUsername;
+        if (pollUserEmailSpan) pollUserEmailSpan.textContent = displayedUsername;
 
         // Admin UI Visibility and user list loading
         if (isAdmin) {
-            adminControlsDiv.classList.remove('hidden');
+            if (adminControlsDiv) adminControlsDiv.classList.remove('hidden');
             loadUserListForAdmin(); // Load user list for admin
         } else {
-            adminControlsDiv.classList.add('hidden');
+            if (adminControlsDiv) adminControlsDiv.classList.add('hidden');
             if (userListForAdmin) userListForAdmin.innerHTML = ''; // Clear admin user list if not admin
         }
 
-        emailInput.value = '';
-        passwordInput.value = '';
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
 
         showPage('menuPage');
 
@@ -249,10 +162,10 @@ auth.onAuthStateChanged(async (user) => {
         // User is signed out
         currentUser = null;
         hasVotedCurrentUser = false;
-        yourVoteStatusSpan.textContent = 'Not Voted';
+        if (yourVoteStatusSpan) yourVoteStatusSpan.textContent = 'Not Voted';
         setPollButtonsDisabled(true);
         isAdmin = false;
-        adminControlsDiv.classList.add('hidden');
+        if (adminControlsDiv) adminControlsDiv.classList.add('hidden');
         if (userListForAdmin) userListForAdmin.innerHTML = ''; // Clear admin user list on logout
         if (usersVoteList) usersVoteList.innerHTML = '<li>Please log in to see votes.</li>'; // Clear all user votes on logout
         showPage('loginPage');
@@ -273,11 +186,11 @@ async function checkUserVoteStatus(uid) {
         const docSnap = await userVoteDocRef.get();
         if (docSnap.exists) {
             hasVotedCurrentUser = true;
-            yourVoteStatusSpan.textContent = docSnap.data().voteType;
+            if (yourVoteStatusSpan) yourVoteStatusSpan.textContent = docSnap.data().voteType;
             setPollButtonsDisabled(true);
         } else {
             hasVotedCurrentUser = false;
-            yourVoteStatusSpan.textContent = 'Not Voted';
+            if (yourVoteStatusSpan) yourVoteStatusSpan.textContent = 'Not Voted';
             if (currentUser) {
                 setPollButtonsDisabled(false);
             }
@@ -285,7 +198,7 @@ async function checkUserVoteStatus(uid) {
     } catch (e) {
         console.error("Error checking user vote status:", e);
         hasVotedCurrentUser = false;
-        yourVoteStatusSpan.textContent = 'Error checking status';
+        if (yourVoteStatusSpan) yourVoteStatusSpan.textContent = 'Error checking status';
         if (currentUser) {
             setPollButtonsDisabled(false);
         }
@@ -300,23 +213,25 @@ async function fetchPollCounts() {
         const docSnap = await pollDocRef.get();
         if (docSnap.exists) {
             const data = docSnap.data();
-            yesCountSpan.textContent = data.yes || 0;
-            noCountSpan.textContent = data.no || 0;
-            maybeCountSpan.textContent = data.maybe || 0;
+            if (yesCountSpan) yesCountSpan.textContent = data.yes || 0;
+            if (noCountSpan) noCountSpan.textContent = data.no || 0;
+            if (maybeCountSpan) maybeCountSpan.textContent = data.maybe || 0;
 
-            pollQuestionDisplay.textContent = data.question || "Default Poll Question";
-            if (!adminControlsDiv.classList.contains('hidden')) {
+            if (pollQuestionDisplay) pollQuestionDisplay.textContent = data.question || "Loading Poll Question...";
+            // Check if adminControlsDiv is visible before setting input value
+            if (adminControlsDiv && !adminControlsDiv.classList.contains('hidden') && pollQuestionInput) {
                 pollQuestionInput.value = data.question || "";
             }
 
         } else {
             // Document doesn't exist, create it with initial values and a default question
             await pollDocRef.set({ yes: 0, no: 0, maybe: 0, question: "Is this the best poll ever?" });
-            yesCountSpan.textContent = 0;
-            noCountSpan.textContent = 0;
-            maybeCountSpan.textContent = 0;
-            pollQuestionDisplay.textContent = "Is this the best poll ever?";
-            if (!adminControlsDiv.classList.contains('hidden')) {
+            if (yesCountSpan) yesCountSpan.textContent = 0;
+            if (noCountSpan) noCountSpan.textContent = 0;
+            if (maybeCountSpan) maybeCountSpan.textContent = 0;
+            if (pollQuestionDisplay) pollQuestionDisplay.textContent = "Is this the best poll ever?";
+            // Check if adminControlsDiv is visible before setting input value
+            if (adminControlsDiv && !adminControlsDiv.classList.contains('hidden') && pollQuestionInput) {
                 pollQuestionInput.value = "Is this the best poll ever?";
             }
         }
@@ -420,7 +335,7 @@ async function handleVote(voteType) {
         });
 
         hasVotedCurrentUser = true;
-        yourVoteStatusSpan.textContent = voteType;
+        if (yourVoteStatusSpan) yourVoteStatusSpan.textContent = voteType;
         await fetchPollCounts();
         await displayAllUsersVoteStatus(); // Update all votes display
         displayMessage(voteMessage, "Your vote has been recorded!", 'success');
@@ -473,7 +388,7 @@ async function resetPollVotesAndQuestion(newQuestion) {
 
         displayMessage(adminMessage, 'Poll question updated and all votes cleared!', 'success');
         // Update UI
-        pollQuestionInput.value = newQuestion; // Ensure input reflects new question
+        if (pollQuestionInput) pollQuestionInput.value = newQuestion; // Ensure input reflects new question
         await fetchPollCounts(); // Re-fetch global counts (should be 0)
         await checkUserVoteStatus(currentUser.uid); // Reset current user's vote status
         await displayAllUsersVoteStatus(); // Update all votes display
@@ -485,7 +400,7 @@ async function resetPollVotesAndQuestion(newQuestion) {
 }
 
 /**
- * NEW FEATURE: Clears a specific user's vote. Used by admin list buttons and input field.
+ * NEW FEATURE: Clears a specific user's vote. Used by admin list buttons.
  * @param {string} targetUid - The UID of the user whose vote to clear.
  */
 async function clearSpecificUserVote(targetUid) {
@@ -514,14 +429,13 @@ async function clearSpecificUserVote(targetUid) {
         });
 
         displayMessage(adminMessage, `Vote for ${targetUid} cleared successfully!`, 'success');
-        userToClearVoteInput.value = ''; // Clear input field
         // Update UI
         await fetchPollCounts(); // Re-fetch global counts
         await displayAllUsersVoteStatus(); // Update all votes display
         // If the cleared user is the current logged-in user, allow them to vote again
         if (currentUser && currentUser.uid === targetUid) {
             hasVotedCurrentUser = false;
-            yourVoteStatusSpan.textContent = 'Not Voted';
+            if (yourVoteStatusSpan) yourVoteStatusSpan.textContent = 'Not Voted';
             setPollButtonsDisabled(false);
         }
         // Refresh admin user list to reflect cleared vote
@@ -538,7 +452,7 @@ async function clearSpecificUserVote(targetUid) {
             errorMessage += "Permission denied. Check Firestore rules.";
         }
         displayMessage(adminMessage, errorMessage, 'error');
-        if (!hasVotedCurrentUser) {
+        if (!hasVotedCurrentUser) { // Only enable buttons if user hasn't voted
             setPollButtonsDisabled(false);
         }
     }
@@ -553,7 +467,7 @@ async function loadUserListForAdmin() {
     if (!userListForAdmin) return; // Ensure element exists
 
     userListForAdmin.innerHTML = '<h4>Registered Users:</h4><ul id="adminUserList"><li>Loading admin user list...</li></ul>';
-    const adminUserList = document.getElementById('adminUserList');
+    const adminUserList = document.getElementById('adminUserList'); // Get local ref after HTML is populated
     if (!adminUserList) return;
 
     try {
@@ -603,7 +517,7 @@ async function loadUserListForAdmin() {
             // NEW: Clear vote button next to each user
             const clearUserButton = document.createElement('button');
             clearUserButton.textContent = 'Clear Vote';
-            clearUserButton.classList.add('copy-uid-button'); // Reuse styling for now
+            clearUserButton.classList.add('clear-vote-button'); // Use specific class for clear vote button
             clearUserButton.onclick = () => clearSpecificUserVote(user.uid);
             listItem.appendChild(clearUserButton);
 
@@ -617,63 +531,141 @@ async function loadUserListForAdmin() {
 }
 
 
-/**
- * Handles updating the poll question by an admin. Now also clears votes.
- */
-updateQuestionButton.addEventListener('click', async () => {
-    if (!currentUser || !isAdmin) {
-        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
-        return;
-    }
-
-    const newQuestion = pollQuestionInput.value.trim();
-    if (!newQuestion) {
-        displayMessage(adminMessage, "Poll question cannot be empty.", 'error');
-        return;
-    }
-
-    // NEW: Call the function that resets votes and updates question
-    await resetPollVotesAndQuestion(newQuestion);
-});
-
-/**
- * Handles clearing a user's vote by an admin via the input field.
- */
-clearVoteButton.addEventListener('click', async () => {
-    if (!currentUser || !isAdmin) {
-        displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
-        return;
-    }
-    const targetUid = userToClearVoteInput.value.trim();
-    if (!targetUid) {
-        displayMessage(adminMessage, "Please enter a User UID to clear.", 'error');
-        return;
-    }
-    // Call the shared function to clear specific user's vote
-    await clearSpecificUserVote(targetUid);
-});
-
-
 // ==============================================
-//           Event Listeners
+//           Initial App Load & Setup (and Event Listeners)
 // ==============================================
+// Declare global HTML element references. They might be null initially
+// but will be correctly set when DOMContentLoaded fires.
+let backToMenuFromNewPageButton;
+let loginPage, menuPage, pollPage, newPage;
+let authForm, emailInput, passwordInput, loginButton, authMessage;
+let loggedInUsernameSpan, goToPollButton, goToNewPageButton, logoutButton;
+let pollUserEmailSpan, voteYesButton, voteNoButton, voteMaybeButton;
+let yesCountSpan, noCountSpan, maybeCountSpan, yourVoteStatusSpan, voteMessage;
+let backToMenuFromPollButton;
+let pollQuestionDisplay;
+let allUsersVoteStatus, usersVoteList;
+let adminControlsDiv, pollQuestionInput, updateQuestionButton, adminMessage;
+let userListForAdmin; // Removed userToClearVoteInput and clearVoteButton
 
-// Poll button event listeners
-voteYesButton.addEventListener('click', () => handleVote('yes'));
-voteNoButton.addEventListener('click', () => handleVote('no'));
-voteMaybeButton.addEventListener('click', () => handleVote('maybe'));
 
-// Navigation button event listeners
-goToPollButton.addEventListener('click', () => showPage('pollPage'));
-goToNewPageButton.addEventListener('click', () => showPage('newPage'));
-backToMenuFromPollButton.addEventListener('click', () => showPage('menuPage'));
-backToMenuFromNewPageButton.addEventListener('click', () => showPage('menuPage'));
-
-
-// ==============================================
-//           Initial App Load & Setup
-// ==============================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Assign HTML element references here, guaranteeing they are in the DOM
+    backToMenuFromNewPageButton = document.getElementById('backToMenuFromNewPage');
+    loginPage = document.getElementById('loginPage');
+    menuPage = document.getElementById('menuPage');
+    pollPage = document.getElementById('pollPage');
+    newPage = document.getElementById('newPage');
+
+    authForm = document.getElementById('authForm');
+    emailInput = document.getElementById('email');
+    passwordInput = document.getElementById('password');
+    loginButton = document.getElementById('loginButton');
+    authMessage = document.getElementById('authMessage');
+
+    loggedInUsernameSpan = document.getElementById('loggedInUsername');
+    goToPollButton = document.getElementById('goToPollButton');
+    goToNewPageButton = document.getElementById('goToNewPageButton');
+    logoutButton = document.getElementById('logoutButton');
+
+    pollUserEmailSpan = document.getElementById('pollUserEmail');
+    voteYesButton = document.getElementById('voteYes');
+    voteNoButton = document.getElementById('voteNo');
+    voteMaybeButton = document.getElementById('voteMaybe');
+    yesCountSpan = document.getElementById('yesCount');
+    noCountSpan = document.getElementById('noCount');
+    maybeCountSpan = document.getElementById('maybeCount');
+    yourVoteStatusSpan = document.getElementById('yourVoteStatus');
+    voteMessage = document.getElementById('voteMessage');
+    backToMenuFromPollButton = document.getElementById('backToMenuFromPoll');
+    pollQuestionDisplay = document.getElementById('pollQuestionDisplay');
+
+    allUsersVoteStatus = document.getElementById('allUsersVoteStatus');
+    usersVoteList = document.getElementById('usersVoteList');
+
+    adminControlsDiv = document.getElementById('adminControlsDiv');
+    pollQuestionInput = document.getElementById('pollQuestionInput');
+    updateQuestionButton = document.getElementById('updateQuestionButton');
+    adminMessage = document.getElementById('adminMessage');
+    userListForAdmin = document.getElementById('userListForAdmin');
+
+    // ==============================================
+    //           Event Listeners (Now inside DOMContentLoaded)
+    // ==============================================
+
+    // Auth form submission
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            displayMessage(authMessage, '', '');
+
+            if (loginButton) loginButton.disabled = true;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                displayMessage(authMessage, 'Login successful!', 'success');
+            } catch (error) {
+                console.error("Login failed:", error.code, error.message);
+                let errorMessage = "Login failed. Please check your credentials.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorMessage = "Invalid email or password.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Please enter a valid email address.";
+                }
+                displayMessage(authMessage, errorMessage, 'error');
+            } finally {
+                if (loginButton) loginButton.disabled = false;
+            }
+        });
+    }
+
+
+    // Logout button
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+                displayMessage(authMessage, 'You have been logged out.', 'success');
+            } catch (error) {
+                console.error("Logout failed:", error.message);
+                displayMessage(authMessage, "Failed to log out. Please try again.", 'error');
+            }
+        });
+    }
+
+    // Poll button event listeners
+    if (voteYesButton) voteYesButton.addEventListener('click', () => handleVote('yes'));
+    if (voteNoButton) voteNoButton.addEventListener('click', () => handleVote('no'));
+    if (voteMaybeButton) voteMaybeButton.addEventListener('click', () => handleVote('maybe'));
+
+    // Navigation button event listeners
+    if (goToPollButton) goToPollButton.addEventListener('click', () => showPage('pollPage'));
+    if (goToNewPageButton) goToNewPageButton.addEventListener('click', () => showPage('newPage'));
+    if (backToMenuFromPollButton) backToMenuFromPollButton.addEventListener('click', () => showPage('menuPage'));
+    if (backToMenuFromNewPageButton) backToMenuFromNewPageButton.addEventListener('click', () => showPage('menuPage'));
+
+    // Admin control event listeners
+    if (updateQuestionButton) {
+        updateQuestionButton.addEventListener('click', async () => {
+            if (!currentUser || !isAdmin) {
+                displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
+                return;
+            }
+
+            const newQuestion = pollQuestionInput.value.trim();
+            if (!newQuestion) {
+                displayMessage(adminMessage, "Poll question cannot be empty.", 'error');
+                return;
+            }
+
+            await resetPollVotesAndQuestion(newQuestion);
+        });
+    }
+
+    // Initial page load for the app based on auth state
+    // This part stays within DOMContentLoaded as it sets up the initial view.
     if (!auth.currentUser) {
         showPage('loginPage');
     }
