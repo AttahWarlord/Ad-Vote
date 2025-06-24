@@ -72,7 +72,11 @@ updateQuestionButton.addEventListener('click', async () => {
  * This involves deleting the user's vote record and decrementing the poll count.
  */
 clearVoteButton.addEventListener('click', async () => {
-    if (!currentUser || !adminControlsDiv.classList.contains('hidden')) { // Ensure user is logged in AND is admin
+    if (!currentUser || !isAdmin) { // Ensure user is logged in AND is admin
+    // The isAdmin variable is now global
+    displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
+    return;
+}
         displayMessage(adminMessage, "Authentication or Admin status required.", 'error');
         return;
     }
@@ -169,6 +173,7 @@ const backToMenuFromNewPageButton = document.getElementById('backToMenuFromNewPa
 // Global state variables
 let currentUser = null; // Stores the authenticated user object
 let hasVotedCurrentUser = false; // Tracks if the current logged-in user has voted
+let isAdmin = false;
 
 // ==============================================
 //             Utility Functions
@@ -278,57 +283,25 @@ logoutButton.addEventListener('click', async () => {
  */
 auth.onAuthStateChanged(async (user) => {
     if (user) {
-        // User is signed in
-        currentUser = user;
+        // ... (existing code) ...
 
-        let displayedUsername = user.email; // Default to email
-        let isAdmin = false; // Track admin status
+        // Remove the 'let' here, just assign to the global isAdmin
+        isAdmin = false; // Reset for safety
 
-        // Fetch user profile (username and isAdmin status)
-        const userProfileRef = db.collection("users").doc(user.uid);
-        try {
-            const userProfileSnap = await userProfileRef.get();
-            if (userProfileSnap.exists) {
-                const userData = userProfileSnap.data();
-                if (userData.username) {
-                    displayedUsername = userData.username;
-                }
-                if (userData.isAdmin === true) { // Check if isAdmin is explicitly true
-                    isAdmin = true;
-                }
+        // ... (fetch user profile code) ...
+
+        if (userProfileSnap.exists) {
+            const userData = userProfileSnap.data();
+            if (userData.username) {
+                displayedUsername = userData.username;
             }
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
-            displayedUsername = user.email + " (Error fetching username)";
+            if (userData.isAdmin === true) {
+                isAdmin = true; // Set the global isAdmin variable
+            }
         }
-
-        loggedInUsernameSpan.textContent = displayedUsername;
-        pollUserEmailSpan.textContent = displayedUsername;
-
-        // Admin UI Visibility
-        if (isAdmin) {
-            adminControlsDiv.classList.remove('hidden');
-        } else {
-            adminControlsDiv.classList.add('hidden'); // Ensure it's hidden if not admin
-        }
-
-        emailInput.value = '';
-        passwordInput.value = '';
-
-        showPage('menuPage');
-
-        // After logging in, always check vote status and fetch poll counts for the poll page
-        await checkUserVoteStatus(currentUser.uid);
-        await fetchPollCounts(); // This function will also now fetch the question
-    } else {
-        // User is signed out
-        currentUser = null;
-        hasVotedCurrentUser = false;
-        yourVoteStatusSpan.textContent = 'Not Voted';
-        setPollButtonsDisabled(true);
-        adminControlsDiv.classList.add('hidden'); // Hide admin controls on logout
-        showPage('loginPage');
+        // ... (rest of the function) ...
     }
+    // ... (rest of the function) ...
 });
 
 // ==============================================
