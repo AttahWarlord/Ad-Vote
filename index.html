@@ -3,94 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ad-Vote Poll Application</title>
-    <!-- Link to your CSS file -->
+    <title>Currency Hub App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="app-container">
-        <!-- ============================================== -->
-        <!--           1. Login/Auth Page                   -->
-        <!-- ============================================== -->
-        <div id="loginPage" class="app-page">
-            <h2>Please Log In or Register</h2>
-            <p id="authMessage" class="message-box error"></p>
+
+        <div id="loginPage" class="app-page hidden">
+            <h1>Login / Register</h1>
             <form id="authForm">
-                <div>
-                    <label for="email">Email (Username):</label>
-                    <input type="email" id="email" placeholder="e.g., yourname@example.com" required autocomplete="username">
-                </div>
-                <div>
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
-                </div>
-                <button type="submit" id="loginButton" class="main-button">Log In</button>
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit" class="main-button">Login or Register</button>
+                <p id="authMessage" class="message-box hidden"></p>
             </form>
         </div>
 
-        <!-- ============================================== -->
-        <!--           2. Menu Page                         -->
-        <!-- ============================================== -->
         <div id="menuPage" class="app-page hidden">
-            <p class="user-status">Welcome, <span id="loggedInUsername">User</span>!</p>
-            <h2>Main Menu</h2>
-            <button id="goToPollButton" class="main-button">Go to Vote Poll</button>
-            <!-- RENAMED BUTTON: goToNewPageButton to goToCurrencyPageButton -->
-            <button id="goToCurrencyPageButton" class="main-button">Go to Currency Hub</button>
-            <button id="logoutButton" class="danger-button">Logout</button>
+            <h1>Welcome, <span id="loggedInUsername">User</span>!</h1>
+            <div class="menu-buttons">
+                <button id="goToPollButton" class="main-button">Go to Poll</button>
+                <button id="goToCurrencyPageButton" class="main-button">Currency Hub</button>
+                <button id="logoutButton" class="secondary-button">Logout</button>
+            </div>
         </div>
 
-        <!-- ============================================== -->
-        <!--           3. Vote Poll Page                    -->
-        <!-- ============================================== -->
         <div id="pollPage" class="app-page hidden">
-            <p class="user-status">You are logged in as: <span id="pollUserEmail"></span></p>
-            <h2 id="pollQuestionDisplay">Loading Poll Question...</h2>
-            <div class="buttons-container">
-                <button id="voteYes" class="poll-button yes-button">Yes</button>
-                <button id="voteMaybe" class="poll-button maybe-button">Maybe</button>
-                <button id="voteNo" class="poll-button no-button">No</button>
-            </div>
-            <div class="results-container">
-                <p>Yes votes: <span id="yesCount">0</span></p>
-                <p>Maybe votes: <span id="maybeCount">0</span></p>
-                <p>No votes: <span id="noCount">0</span></p>
-                <p class="small-text">(Your vote: <span id="yourVoteStatus">Not Voted</span>)</p>
-            </div>
-            <p id="voteMessage" class="message-box"></p>
-            <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
+            <h2>Current Poll</h2>
+            <p class="user-status">Logged in as: <span id="pollUserEmail"></span></p>
 
-            <!-- NEW: All Users Vote Status Section (visible to ALL logged-in users) -->
-            <div id="allUsersVoteStatus" class="all-votes-section user-list-container">
-                <h4>All User Votes:</h4>
-                <ul id="usersVoteList">
-                    <li>Loading votes...</li>
+            <h3 id="pollQuestionDisplay">Loading poll question...</h3>
+
+            <div class="vote-buttons">
+                <button id="voteYes" class="main-button poll-button">Yes</button>
+                <button id="voteNo" class="main-button poll-button">No</button>
+                <button id="voteMaybe" class="main-button poll-button">Maybe</button>
+            </div>
+            <p class="vote-status">Your Vote: <span id="yourVoteStatusDisplay">Not Voted</span></p>
+            <p id="voteMessageDisplay" class="message-box hidden"></p>
+
+            <div class="poll-results">
+                <h4>Current Results:</h4>
+                <p>Yes: <span id="yesCount">0</span></p>
+                <p>No: <span id="noCount">0</span></p>
+                <p>Maybe: <span id="maybeCount">0</span></p>
+            </div>
+
+            <div id="allUsersVoteStatus">
+                <h4>All Users' Votes:</h4>
+                <ul id="usersVoteList" class="user-vote-list">
+                    <li>Loading user votes...</li>
                 </ul>
             </div>
 
-            <!-- Admin Controls (now correctly nested inside pollPage and has 'admin-section' class) -->
-            <div id="adminControlsDiv" class="admin-section hidden">
+            <button id="backToMenuFromPoll" class="secondary-button">Back to Menu</button>
+
+            <div id="adminControlsDiv" class="admin-controls hidden">
                 <h3>Admin Controls</h3>
-                <div class="admin-message" id="adminMessage"></div> <!-- adminMessage should also be here -->
-
-                <div class="input-group">
-                    <label for="pollQuestionInput">Update Poll Question (Clears all votes!):</label>
-                    <input type="text" id="pollQuestionInput" placeholder="Enter new poll question">
-                    <button id="updateQuestionButton" class="main-button">Update Question</button>
-                </div>
-
-                <!-- Admin's list of users with clear vote buttons -->
-                <div id="userListForAdmin" class="user-list-container">
-                    <!-- User list populated by JS -->
-                </div>
+                <input type="text" id="pollQuestionInput" placeholder="New Poll Question">
+                <button id="updateQuestionButton" class="main-button">Update Poll & Reset Votes</button>
+                <p id="adminMessage" class="message-box hidden"></p>
+                <h4>Manage Users:</h4>
+                <ul id="userListForAdmin" class="user-vote-list">
+                    <li>Loading users for admin...</li>
+                </ul>
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!--           NEW: 4. Currency Hub Page            -->
-        <!-- ============================================== -->
-       <div id="currencyPage" class="app-page hidden">
+        <div id="currencyPage" class="app-page hidden">
 
             <div id="currencyHubMainContent">
                 <h2>Your Currency Hub</h2>
@@ -100,6 +81,7 @@
                     <button id="goToClickerButton" class="main-button">Clicker Game</button>
                     </div>
             </div>
+
             <div id="currencySubPagesContainer">
                 <div id="clickerGamePage" class="currency-sub-page hidden">
                     <h3>Click to Earn Coins!</h3>
@@ -113,35 +95,12 @@
 
             <button id="backToMenuFromCurrency" class="secondary-button">Back to Menu</button>
         </div>
-                <!-- ============================================== -->
-                <!--        Currency: Clicker Game Sub-Page         -->
-                <!-- ============================================== -->
-                <div id="clickerGamePage" class="currency-sub-page hidden">
-                    <h3>Click to Earn Coins!</h3>
-                    <p>Total Clicks: <span id="clickCountDisplay">0</span></p>
-                    <p>Coins per Click: <span id="earningPerClick">1</span></p>
-                    <button id="clickButton" class="main-button poll-button">Click Me!</button>
-                    <button id="backToCurrencyHubButton" class="secondary-button">Back to Hub</button>
-                </div>
 
-                <!-- Add more currency sub-pages here later -->
-            </div>
-
-            <!-- RENAMED BUTTON: backToMenuFromNewPage to backToMenuFromCurrency -->
-            <button id="backToMenuFromCurrency" class="secondary-button">Back to Menu</button>
-        </div>
     </div>
 
-    <!-- ============================================== -->
-    <!--          Firebase SDK & Your Scripts           -->
-    <!-- ============================================== -->
-    <!-- Firebase SDK (using compat versions for broader compatibility) -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-
-    <!-- Your main application JavaScript -->
     <script src="script.js"></script>
-
 </body>
 </html>
